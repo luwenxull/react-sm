@@ -6,6 +6,7 @@
   "author": "luwenxull <992273307@qq.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^24.0.20",
     "jest": "^24.9.0",
     "typescript": "^3.6.4"
   },
