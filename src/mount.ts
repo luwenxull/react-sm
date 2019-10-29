@@ -1,38 +1,48 @@
-import { DOMElement, FunctionElement, Element, Child } from "./creatElement";
-import { setStates } from './useState'
+import { FunctionElement, Element, Child } from './creatElement';
+import { setStates } from './useState';
 
-function isElement(element: any): element is Element {
-  return typeof element === 'object'
-    && element !== null
+function isElement(element: Child): element is Element {
+  return typeof element === 'object' && element !== null;
 }
 
-function isFunctionElement(element: any): element is FunctionElement<any> {
-  return typeof element === 'object'
-    && element !== null
-    && typeof element.type === 'function'
+function isFunctionElement(
+  element?: Child
+): element is FunctionElement<any, any> {
+  return (
+    typeof element === 'object' &&
+    element !== null &&
+    typeof element.type === 'function'
+  );
 }
 
 export default function mount(element: Element) {
   if (isFunctionElement(element)) {
-    const { states, props, type } = element
-    setStates(states)
-    const child = type(props)
-    if (
-      isFunctionElement(child)
-      && isFunctionElement(element.child)
-      && child.type === element.child.type
-    ) {
-      child.states = element.child.states
-    }
-    element.child = child
-    // mount(child)
-    if (isElement(child)) {
-      child.parent = element
-      mount(child)
-    } else {
-      // TODO
+    const { states, props, type } = element;
+    setStates(states);
+    const renderElement = type(
+      Object.assign({}, props, { children: element.children })
+    );
+    // if (
+    //   isFunctionElement(renderElement) &&
+    //   isFunctionElement(element.renderElement) &&
+    //   renderElement.type === element.renderElement.type
+    // ) {
+    //   renderElement.states = element.renderElement.states;
+    // }
+    element.renderElement = renderElement;
+    if (isElement(renderElement)) {
+      renderElement.parent = element;
+      mount(renderElement);
     }
   } else {
-    // TODO
+    if (element.children instanceof Array) {
+      element.children.forEach(child => {
+        if (isElement(child)) {
+          mount(child);
+        }
+      });
+    } else if (isElement(element.children)) {
+      mount(element.children);
+    } // else nothing to do
   }
 }

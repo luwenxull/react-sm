@@ -1,43 +1,68 @@
-export type Props = {
-  [props: string]: any
+export type DOMProps = {
+  [props: string]: any;
+};
+
+export type FunctionProps = {
+  children?: Child | Child[];
+};
+
+export type FunctionComponent<T extends object> = (
+  props: T & FunctionProps
+) => Child;
+
+export interface BaseElement {
+  children?: Child | Child[];
+  parent?: Element;
 }
 
-export type FunctionComponent<T extends object> = (props: T) => Child
-
-export interface FunctionElement<T extends object> {
-  type: FunctionComponent<T>,
-  states: any[],
-  props?: T,
-  child?: Child
-  parent?: Element
+export interface FunctionElement<
+  T extends FunctionComponent<U>,
+  U extends object
+> extends BaseElement {
+  type: T;
+  states: any[];
+  props?: U;
+  renderElement?: Child;
 }
 
-export interface DOMElement {
+export interface DOMElement extends BaseElement {
+  type: string;
+  props?: DOMProps;
+}
+
+export type Element = DOMElement | FunctionElement<any, any>;
+export type Primitive = string | number | null | undefined;
+export type Child = Element | Primitive;
+
+export default function createElement<
+  T extends FunctionComponent<U>,
+  U extends object
+>(type: T, props?: U, children?: Child | Child[]): FunctionElement<T, U>;
+export default function createElement(
   type: string,
-  props?: Props,
-  child?: Child,
-  parent?: Element,
-}
-
-export type Element = DOMElement | FunctionElement<any>
-export type Primitive = string | number | null | undefined
-export type Child = Element | Primitive
-
-export default function createElement<T extends object>(type: FunctionComponent<T>, props?: T, child?: Element): FunctionElement<T>
-export default function createElement(type: string, props?: Props, child?: Element): DOMElement
-export default function createElement<T extends object>(type: string | FunctionComponent<T>, props?: Props | T, child?: Element): Element {
+  props?: DOMProps,
+  children?: Child | Child[]
+): DOMElement;
+export default function createElement<
+  T extends FunctionComponent<U>,
+  U extends object
+>(
+  type: string | T,
+  props?: DOMProps | U,
+  children?: Child | Child[]
+): FunctionElement<T, U> | DOMElement {
   if (typeof type === 'string') {
     return {
       type,
       props,
-      child,
-    }
+      children: children
+    };
   } else {
     return {
       type,
       states: [],
-      props,
-      child,
-    }
+      props: props as any,
+      children: children
+    };
   }
 }
