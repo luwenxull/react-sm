@@ -1,4 +1,4 @@
-import mount from '../mount';
+import inflate from '../inflate';
 import createElement, {
   FunctionComponent,
   FunctionElement
@@ -13,7 +13,7 @@ test('mount dom element', () => {
   const div = createElement('div', {}, a);
   expect(div.children).toBe(a);
   expect(a.renderElement).toBeUndefined();
-  mount(div);
+  inflate(div);
   expect(div.children).toBe(a);
   expect(a.renderElement).toBe('a');
 });
@@ -36,7 +36,7 @@ test('mount funcition element', () => {
   expect(b.states.length).toBe(0);
   expect(b.children).toEqual(['b']);
   expect(b.renderElement).toBeUndefined();
-  mount(b);
+  inflate(b);
   const renderElement = b.renderElement as FunctionElement<any, any>;
   expect(renderElement.type).toBe(A);
   expect(renderElement.renderElement).toBe('props from b 0');

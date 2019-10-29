@@ -1,48 +1,29 @@
-import { FunctionElement, Element, Child } from './creatElement';
-import { setStates } from './useState';
+import { Element, Child } from './creatElement';
+import { isElement, isFunctionElement } from './util'
+import inflate from './inflate'
 
-function isElement(element: Child): element is Element {
-  return typeof element === 'object' && element !== null;
-}
-
-function isFunctionElement(
-  element?: Child
-): element is FunctionElement<any, any> {
-  return (
-    typeof element === 'object' &&
-    element !== null &&
-    typeof element.type === 'function'
-  );
-}
-
-export default function mount(element: Element) {
-  if (isFunctionElement(element)) {
-    const { states, props, type } = element;
-    setStates(states);
-    const renderElement = type(
-      Object.assign({}, props, { children: element.children })
-    );
-    // if (
-    //   isFunctionElement(renderElement) &&
-    //   isFunctionElement(element.renderElement) &&
-    //   renderElement.type === element.renderElement.type
-    // ) {
-    //   renderElement.states = element.renderElement.states;
-    // }
-    element.renderElement = renderElement;
-    if (isElement(renderElement)) {
-      renderElement.parent = element;
-      mount(renderElement);
-    }
+function _mount(element: Child, parent: HTMLElement) {
+  if (isElement(element)) {
+    mount(element, parent)
   } else {
+    parent.appendChild(document.createTextNode(String(element)))
+  }
+}
+
+export default function mount(element: Element, parent: HTMLElement) {
+  inflate(element)
+  if (isFunctionElement(element)) {
+    const { renderElement } = element
+    _mount(renderElement, parent)
+  } else {
+    const dom = document.createElement(element.type)
+    parent.appendChild(dom)
     if (element.children instanceof Array) {
       element.children.forEach(child => {
-        if (isElement(child)) {
-          mount(child);
-        }
-      });
-    } else if (isElement(element.children)) {
-      mount(element.children);
-    } // else nothing to do
+        _mount(child, dom)
+      })
+    } else {
+      _mount(element.children, dom)
+    }
   }
 }
