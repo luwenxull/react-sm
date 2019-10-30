@@ -1,6 +1,6 @@
 import { Element } from './creatElement';
 import { setStates } from './useState';
-import { isFunctionElement, isElement } from './util'
+import { isFunctionElement, isElement } from './util';
 
 export default function inflate(element: Element) {
   if (isFunctionElement(element)) {

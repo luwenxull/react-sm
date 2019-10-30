@@ -1,4 +1,4 @@
-export type DOMProps = {
+export type Props = {
   [props: string]: any;
 };
 
@@ -6,8 +6,10 @@ export type FunctionProps = {
   children?: Child | Child[];
 };
 
-export type FunctionComponent<T extends object> = (
-  props: T & FunctionProps
+export type UserProps = Props | undefined;
+
+export type FunctionComponent<T extends UserProps> = (
+  props: T extends undefined ? FunctionProps : (T & FunctionProps)
 ) => Child;
 
 export interface BaseElement {
@@ -15,42 +17,38 @@ export interface BaseElement {
   parent?: Element;
 }
 
-export interface FunctionElement<
-  T extends FunctionComponent<U>,
-  U extends object
-> extends BaseElement {
+export interface FunctionElement<T extends FunctionComponent<any>>
+  extends BaseElement {
   type: T;
   states: any[];
-  props?: U;
+  props: T extends FunctionComponent<infer U> ? U : never;
   renderElement?: Child;
 }
 
 export interface DOMElement extends BaseElement {
   type: string;
-  props?: DOMProps;
+  props?: Props;
 }
 
-export type Element = DOMElement | FunctionElement<any, any>;
+export type Element = DOMElement | FunctionElement<any>;
 export type Primitive = string | number | null | undefined;
 export type Child = Element | Primitive;
 
-export default function createElement<
-  T extends FunctionComponent<U>,
-  U extends object
->(type: T, props?: U, children?: Child | Child[]): FunctionElement<T, U>;
+export default function createElement<T extends FunctionComponent<any>>(
+  type: T,
+  props: T extends FunctionComponent<infer U> ? U : never,
+  children?: Child | Child[]
+): FunctionElement<T>;
 export default function createElement(
   type: string,
-  props?: DOMProps,
+  props?: Props,
   children?: Child | Child[]
 ): DOMElement;
-export default function createElement<
-  T extends FunctionComponent<U>,
-  U extends object
->(
+export default function createElement<T extends FunctionComponent<any>>(
   type: string | T,
-  props?: DOMProps | U,
+  props?: any,
   children?: Child | Child[]
-): FunctionElement<T, U> | DOMElement {
+): FunctionElement<T> | DOMElement {
   if (typeof type === 'string') {
     return {
       type,

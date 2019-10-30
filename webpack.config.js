@@ -5,11 +5,14 @@ module.exports = function() {
     mode: 'development',
     devtool: 'inline-source-map',
     entry: {
-      options: './src/options.jsx',
+      test: './browser/test.ts',
     },
     output: {
       filename: '[name].js',
-      path: path.resolve(__dirname, 'extension'),
+      path: path.resolve(__dirname, 'browser'),
+    },
+    resolve: {
+      extensions: ['.js', '.ts']
     },
     module: {
       rules: [
