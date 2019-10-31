@@ -8,7 +8,7 @@ export type FunctionProps = {
 
 export type UserProps = Props | undefined;
 
-export type FunctionComponent<T extends UserProps> = (
+export type FunctionComponent<T extends UserProps = undefined> = (
   props: T extends undefined ? FunctionProps : (T & FunctionProps)
 ) => Child;
 
@@ -17,7 +17,7 @@ export interface BaseElement {
   parent?: Element;
 }
 
-export interface FunctionElement<T extends FunctionComponent<any>>
+export interface FunctionElement<T extends FunctionComponent>
   extends BaseElement {
   type: T;
   states: any[];
@@ -39,13 +39,13 @@ export default function createElement<T extends FunctionComponent<any>>(
   props: T extends FunctionComponent<infer U> ? U : never,
   children?: Child | Child[]
 ): FunctionElement<T>;
-export default function createElement(
-  type: string,
+export default function createElement<T extends string>(
+  type: T,
   props?: Props,
   children?: Child | Child[]
 ): DOMElement;
-export default function createElement<T extends FunctionComponent<any>>(
-  type: string | T,
+export default function createElement<T extends FunctionComponent>(
+  type: T,
   props?: any,
   children?: Child | Child[]
 ): FunctionElement<T> | DOMElement {
