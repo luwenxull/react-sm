@@ -1,6 +1,6 @@
 {
   "name": "react-sm",
-  "version": "0.2.1",
+  "version": "0.3.1",
   "main": "index.js",
   "repository": "git@github.com:luwenxull/react-sm.git",
   "author": "luwenxull <992273307@qq.com>",
@@ -21,6 +21,6 @@
     "test": "jest --verbose --watchAll",
     "pretty:mac": "prettier --write './src/**/*.ts'",
     "pretty:windows": "prettier --write ./src/**/*.ts",
-    "webpack": "webpack --watch"
+    "browser-test": "webpack --watch"
   }
 }

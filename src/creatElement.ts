@@ -15,9 +15,11 @@ export type FunctionComponent<T extends UserProps = undefined> = (
 export interface BaseElement {
   children?: Child | Child[];
   parent?: Element;
+  depth?: number;
+  pending: boolean;
 }
 
-export interface FunctionElement<T extends FunctionComponent>
+export interface FunctionElement<T extends FunctionComponent<any>>
   extends BaseElement {
   type: T;
   states: any[];
@@ -44,7 +46,7 @@ export default function createElement<T extends string>(
   props?: Props,
   children?: Child | Child[]
 ): DOMElement;
-export default function createElement<T extends FunctionComponent>(
+export default function createElement<T extends FunctionComponent<any>>(
   type: T,
   props?: any,
   children?: Child | Child[]
@@ -53,14 +55,16 @@ export default function createElement<T extends FunctionComponent>(
     return {
       type,
       props,
-      children: children
+      children,
+      pending: false
     };
   } else {
     return {
       type,
       states: [],
       props: props as any,
-      children: children
+      children,
+      pending: false
     };
   }
 }

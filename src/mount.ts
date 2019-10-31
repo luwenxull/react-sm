@@ -1,6 +1,6 @@
 import { Element, Child } from './creatElement';
 import { isElement, isFunctionElement } from './util';
-import inflate from './inflate';
+import render from './render';
 
 function _mount(element: Child, parent: HTMLElement) {
   if (isElement(element)) {
@@ -11,7 +11,7 @@ function _mount(element: Child, parent: HTMLElement) {
 }
 
 export default function mount(element: Element, parent: HTMLElement) {
-  inflate(element);
+  render(element);
   if (isFunctionElement(element)) {
     const { renderElement } = element;
     _mount(renderElement, parent);
