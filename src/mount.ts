@@ -2,7 +2,9 @@ import { Element, Child } from './creatElement';
 import { isElement, isFunctionElement } from './util';
 import render from './render';
 
-function _mount(element: Child, parent: HTMLElement) {
+type DOM = HTMLElement | DocumentFragment;
+
+function _mount(element: Child, parent: DOM) {
   if (isElement(element)) {
     mount(element, parent);
   } else {
@@ -10,14 +12,18 @@ function _mount(element: Child, parent: HTMLElement) {
   }
 }
 
-export default function mount(element: Element, parent: HTMLElement) {
+export default function mount(element: Element, parent: DOM) {
   render(element);
   if (isFunctionElement(element)) {
     const { renderElement } = element;
     _mount(renderElement, parent);
   } else {
-    const dom = document.createElement(element.type);
-    parent.appendChild(dom);
+    let dom: DOM;
+    if (element.type === 'fragment') {
+      dom = document.createDocumentFragment();
+    } else {
+      dom = document.createElement(element.type);
+    }
     if (element.children instanceof Array) {
       element.children.forEach(child => {
         _mount(child, dom);
@@ -25,5 +31,7 @@ export default function mount(element: Element, parent: HTMLElement) {
     } else {
       _mount(element.children, dom);
     }
+    element.$dom = dom;
+    parent.appendChild(dom);
   }
 }

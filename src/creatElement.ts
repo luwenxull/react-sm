@@ -16,7 +16,7 @@ export interface BaseElement {
   children?: Child | Child[];
   parent?: Element;
   depth?: number;
-  pending: boolean;
+  key?: string;
 }
 
 export interface FunctionElement<T extends FunctionComponent<any>>
@@ -30,6 +30,7 @@ export interface FunctionElement<T extends FunctionComponent<any>>
 export interface DOMElement extends BaseElement {
   type: string;
   props?: Props;
+  $dom?: HTMLElement | DocumentFragment;
 }
 
 export type Element = DOMElement | FunctionElement<any>;
@@ -55,16 +56,14 @@ export default function createElement<T extends FunctionComponent<any>>(
     return {
       type,
       props,
-      children,
-      pending: false
+      children
     };
   } else {
     return {
       type,
       states: [],
       props: props as any,
-      children,
-      pending: false
+      children
     };
   }
 }

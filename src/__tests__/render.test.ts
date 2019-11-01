@@ -40,36 +40,36 @@ test('render element', () => {
   expect(p.children).toBe('b1');
 });
 
-test('set state', done => {
-  let _setName: any;
-  let _setAge: any;
-  let _setB: any;
-  let A: FunctionComponent = jest.fn(function() {
-    const [name, setName] = useState('a');
-    const [age, setAge] = useState(20);
-    _setName = setName;
-    _setAge = setAge;
-    return `${name}:${age}`;
-  });
-  let B: FunctionComponent = jest.fn(function() {
-    const [, setB] = useState('');
-    _setB = setB;
-    return createElement(A, undefined);
-  });
-  const b = createElement(B, undefined);
-  render(b);
-  const a = b.renderElement as any;
-  expect(a.renderElement).toBe('a:20');
-  const updated = jest.fn(() => {
-    console.log('updated');
-    expect(a.renderElement).toBe('aa:21');
-    done();
-  });
-  onBatchUpdated(updated);
-  _setAge(21);
-  _setName('aa');
-  _setB();
-  console.log('....');
-  // expect(a.renderElement).toBe('aa:21');
-  // done()
-});
+// test('set state', done => {
+//   let _setName: any;
+//   let _setAge: any;
+//   let _setB: any;
+//   let A: FunctionComponent = jest.fn(function() {
+//     const [name, setName] = useState('a');
+//     const [age, setAge] = useState(20);
+//     _setName = setName;
+//     _setAge = setAge;
+//     return `${name}:${age}`;
+//   });
+//   let B: FunctionComponent = jest.fn(function() {
+//     const [, setB] = useState('');
+//     _setB = setB;
+//     return createElement(A, undefined);
+//   });
+//   const b = createElement(B, undefined);
+//   render(b);
+//   const a = b.renderElement as any;
+//   expect(a.renderElement).toBe('a:20');
+//   const updated = jest.fn(() => {
+//     console.log('updated');
+//     expect(a.renderElement).toBe('aa:21');
+//     done();
+//   });
+//   onBatchUpdated(updated);
+//   _setAge(21);
+//   _setName('aa');
+//   _setB();
+//   console.log('....');
+//   // expect(a.renderElement).toBe('aa:21');
+//   // done()
+// });

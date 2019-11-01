@@ -38,7 +38,6 @@ export function offBatchUpdated(fn: BatchUpdateCallback) {
  */
 
 function _batchUpdate() {
-  console.log('batch!!!');
   if (_pendings.length) {
     const sorted = _pendings.sort((a, b) => {
       return (b.depth as number) - (a.depth as number);
