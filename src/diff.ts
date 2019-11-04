@@ -1,7 +1,106 @@
-import { Element } from './creatElement';
+import { Element, Child, FunctionElement } from './creatElement';
+import { isElement, isFunctionElement, isEmpty } from './util';
 
-export default function diff(newElement: Element, oldElement: Element) {
-  // console.log(newElement, oldElement);
+export enum DiffType {
+  CREATE,
+  DELETE,
+  REPLACE
+}
+export interface Diff {
+  type: DiffType;
+  oldChild?: Child;
+  newChild?: Child;
+  oldParent?: Element;
+}
+
+function _diff(
+  newChild: Child,
+  oldChild: Child,
+  results: Diff[],
+  oldParent?: Element
+) {
+  if (isEmpty(newChild) && !isEmpty(oldChild)) {
+    results.push({
+      type: DiffType.DELETE,
+      oldChild,
+      oldParent
+    });
+  } else {
+    if (isElement(oldChild)) {
+      if (isElement(newChild)) {
+        if (newChild.type !== oldChild.type) {
+          results.push({
+            type: DiffType.REPLACE,
+            oldChild,
+            newChild
+          });
+        } else {
+          // type相等
+          if (isFunctionElement(newChild)) {
+            // so as newElement
+            _diff(
+              newChild.renderElement,
+              (oldChild as FunctionElement<any>).renderElement,
+              results,
+              oldChild.parent
+            );
+          } else {
+            const newChildren = ([] as Child[]).concat(newChild.children);
+            const oldChildren = ([] as Child[]).concat(oldChild.children);
+            for (let i = 0; i < oldChildren.length; i++) {
+              _diff(newChildren[i], oldChildren[i], results, oldChild.parent);
+            }
+            if (newChildren.length > oldChildren.length) {
+              newChildren.slice(oldChildren.length).forEach(child => {
+                results.push({
+                  type: DiffType.CREATE,
+                  newChild: child
+                });
+              });
+            }
+          }
+        }
+      } else {
+        results.push({
+          type: DiffType.REPLACE,
+          oldChild,
+          newChild
+        });
+      }
+    } else if (isEmpty(oldChild)) {
+      if (!isEmpty(newChild)) {
+        results.push({
+          type: DiffType.CREATE,
+          newChild
+        });
+      }
+    } else {
+      // primitive
+      if (isElement(newChild)) {
+        results.push({
+          type: DiffType.REPLACE,
+          oldChild,
+          newChild,
+          oldParent
+        });
+      } else {
+        if (String(oldChild) !== String(newChild)) {
+          results.push({
+            type: DiffType.REPLACE,
+            oldChild,
+            newChild,
+            oldParent
+          });
+        }
+      }
+    }
+  }
+}
+
+export default function diff(newChild: Child, oldChild: Child): Diff[] {
+  const results: Diff[] = [];
+  _diff(newChild, oldChild, results);
+  return results;
 }
 
 type ElementWithKey = { key: string };

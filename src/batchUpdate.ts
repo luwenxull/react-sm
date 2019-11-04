@@ -1,6 +1,7 @@
 import { FunctionElement } from './creatElement';
 import render from './render';
 import diff from './diff';
+import applyDiff from './applyDiff';
 
 type BatchUpdateCallback = (entries: FunctionElement<any>[]) => void;
 
@@ -54,7 +55,8 @@ function _batchUpdate() {
       }
     }
     batchUpdateEntries.forEach(element => {
-      diff(render(Object.assign({}, element)), element);
+      const diffs = diff(render(Object.assign({}, element)), element);
+      applyDiff(diffs);
     });
     _batchUpdatedListeners.forEach(fn => {
       fn(batchUpdateEntries);

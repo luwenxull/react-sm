@@ -1,37 +1,55 @@
-import { Element, Child } from './creatElement';
-import { isElement, isFunctionElement } from './util';
-import render from './render';
+import { Element, Child, FunctionComponent } from './creatElement';
+import { isElement, isFunctionElement, isEmpty } from './util';
+import render, { _TextComponent } from './render';
 
 type DOM = HTMLElement | DocumentFragment;
 
-function _mount(element: Child, parent: DOM) {
+function append(element: Child, parent: DOM) {
   if (isElement(element)) {
-    mount(element, parent);
+    if (element.type === _TextComponent) {
+      const { renderElement } = element as any;
+      if (!isEmpty(renderElement)) {
+        element.$dom = document.createTextNode(String(renderElement));
+        parent.appendChild(element.$dom);
+      }
+    } else {
+      _mount(element, parent);
+    }
   } else {
-    parent.appendChild(document.createTextNode(String(element)));
+    // ignore undefine and null
+    if (!isEmpty(element)) {
+      parent.appendChild(document.createTextNode(String(element)));
+    }
   }
 }
 
-export default function mount(element: Element, parent: DOM) {
-  render(element);
+function _mount(element: Element, parent: DOM) {
   if (isFunctionElement(element)) {
     const { renderElement } = element;
-    _mount(renderElement, parent);
+    append(renderElement, parent);
   } else {
     let dom: DOM;
     if (element.type === 'fragment') {
       dom = document.createDocumentFragment();
     } else {
       dom = document.createElement(element.type);
+      element.$dom = dom as HTMLElement;
     }
-    if (element.children instanceof Array) {
-      element.children.forEach(child => {
-        _mount(child, dom);
-      });
-    } else {
-      _mount(element.children, dom);
-    }
-    element.$dom = dom;
+    element.children.forEach(child => {
+      // if (child)
+      append(child, dom);
+    });
+    // if (element.type === 'fragment') {
+    //   element.$dom =
+    // }
     parent.appendChild(dom);
   }
+}
+
+export default function mount(element: Element, parent: HTMLElement) {
+  render(element);
+  if (isFunctionElement(element)) {
+    element.$dom = parent;
+  }
+  _mount(element, parent);
 }

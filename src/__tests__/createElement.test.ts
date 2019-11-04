@@ -10,7 +10,10 @@ test('create dom element', () => {
   );
   expect(e.type).toBe('div');
   expect(e.props).toEqual({ name: 'test div' });
-  expect(e.children).toEqual('child of div');
+  expect(e.children).toEqual(['child of div']);
+  expect(e.key).toBeUndefined();
+  const e2 = createElement('div', { key: '1' });
+  expect(e2.key).toBe('1');
 });
 
 test('create function element', () => {
@@ -22,9 +25,11 @@ test('create function element', () => {
     {
       name: 'test A'
     },
-    ['a']
+    'a'
   );
   expect(e.type).toBe(A);
   expect(e.props).toEqual({ name: 'test A' });
-  expect(e.children).toEqual(['a']);
+  expect(e.children).toEqual('a');
+  const e2 = createElement(A, { key: 'a' });
+  expect(e2.key).toBe('a');
 });

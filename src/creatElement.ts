@@ -1,3 +1,5 @@
+import { isEmpty } from './util';
+
 export type Props = {
   [props: string]: any;
 };
@@ -6,17 +8,20 @@ export type FunctionProps = {
   children?: Child | Child[];
 };
 
-export type UserProps = Props | undefined;
+export type Children = Child | Child[];
 
-export type FunctionComponent<T extends UserProps = undefined> = (
-  props: T extends undefined ? FunctionProps : (T & FunctionProps)
+export type UserProps = Props;
+
+export type FunctionComponent<T extends UserProps = {}> = (
+  props: T & FunctionProps
 ) => Child;
 
 export interface BaseElement {
-  children?: Child | Child[];
   parent?: Element;
   depth?: number;
   key?: string;
+  $dom?: HTMLElement | Text;
+  _isElement: true;
 }
 
 export interface FunctionElement<T extends FunctionComponent<any>>
@@ -24,46 +29,64 @@ export interface FunctionElement<T extends FunctionComponent<any>>
   type: T;
   states: any[];
   props: T extends FunctionComponent<infer U> ? U : never;
-  renderElement?: Child;
+  renderElement?: ReturnType<T>;
+  children?: Children;
 }
 
-export interface DOMElement extends BaseElement {
-  type: string;
+export interface DOMElement<T extends string = any> extends BaseElement {
+  type: T;
   props?: Props;
-  $dom?: HTMLElement | DocumentFragment;
+  children: Child[];
+  keyedChildren: {
+    [props: string]: Element;
+  };
 }
 
-export type Element = DOMElement | FunctionElement<any>;
+export type Element = DOMElement | FunctionElement<FunctionComponent<any>>;
 export type Primitive = string | number | null | undefined;
 export type Child = Element | Primitive;
 
 export default function createElement<T extends FunctionComponent<any>>(
   type: T,
-  props: T extends FunctionComponent<infer U> ? U : never,
-  children?: Child | Child[]
+  props: T extends FunctionComponent<infer U> ? (U & { key?: string }) : never,
+  children?: Children
 ): FunctionElement<T>;
 export default function createElement<T extends string>(
   type: T,
   props?: Props,
-  children?: Child | Child[]
-): DOMElement;
-export default function createElement<T extends FunctionComponent<any>>(
+  children?: Children
+): DOMElement<T>;
+export default function createElement<
+  T extends string | FunctionComponent<any>
+>(
   type: T,
   props?: any,
   children?: Child | Child[]
-): FunctionElement<T> | DOMElement {
+): FunctionElement<FunctionComponent<any>> | DOMElement {
+  let element: Element;
   if (typeof type === 'string') {
-    return {
+    element = {
       type,
       props,
-      children
+      children: isEmpty(children) ? [] : ([] as Child[]).concat(children),
+      _isElement: true,
+      keyedChildren: {}
     };
   } else {
-    return {
-      type,
+    element = {
+      type: type as FunctionComponent<any>,
       states: [],
-      props: props as any,
-      children
+      props,
+      children,
+      _isElement: true
     };
   }
+  if (
+    typeof props === 'object' &&
+    props !== null &&
+    typeof props.key === 'string'
+  ) {
+    element.key = props.key;
+  }
+  return element;
 }

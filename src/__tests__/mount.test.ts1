@@ -1,0 +1,18 @@
+import createElement, { FunctionComponent } from '../creatElement';
+import mount from '../mount';
+
+test('mount', () => {
+  let B: FunctionComponent = function(props) {
+    return createElement('div', undefined);
+  };
+  let C: FunctionComponent = function(props) {
+    return createElement(B, undefined);
+  };
+  let c = createElement(C, undefined);
+  const ele = document.createElement('div');
+  mount(c, ele);
+  expect(c.$dom).toBe(ele);
+  let f = createElement('fragment', undefined, 'f');
+  mount(f, document.createElement('div'));
+  expect(f.$dom).toBe(undefined);
+});
