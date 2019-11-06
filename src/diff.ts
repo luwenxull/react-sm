@@ -18,18 +18,17 @@ export interface Diff {
   type: DiffType;
   oldChild?: Child;
   newChild?: Child;
-  oldParent?: Element;
+  parent: Element | undefined;
 }
 
 export function reconcile(
   newElement: DOMElement<any>,
   oldElement: DOMElement<any>
 ): Diff[] {
-  debugger;
   const results: Diff[] = [];
   const {
-    children: newChildren,
-    childrenMapByKey: newChildrenMapByKey
+    children: newChildren
+    // childrenMapByKey: newChildrenMapByKey
   } = newElement;
   const {
     children: oldChildren,
@@ -47,12 +46,13 @@ export function reconcile(
     }
     const oldMap = oldChildrenMapByKey.get(type);
     if (oldMap && oldMap.has(_key)) {
-      _diff(element, oldMap.get(_key), results);
+      _diff(element, oldMap.get(_key), results, oldElement);
       childrendNeedKeep.add(oldMap.get(_key) as Element);
     } else {
       results.push({
         type: DiffType.CREATE,
-        newChild: element
+        newChild: element,
+        parent: oldElement
       });
     }
   });
@@ -60,7 +60,8 @@ export function reconcile(
     if (!childrendNeedKeep.has(element)) {
       results.push({
         type: DiffType.DELETE,
-        newChild: element
+        oldChild: element,
+        parent: element
       });
     }
   });
@@ -71,13 +72,13 @@ function _diff(
   newChild: Child,
   oldChild: Child,
   results: Diff[],
-  oldParent?: Element
+  parent: Element | undefined
 ) {
   if (isEmpty(newChild) && !isEmpty(oldChild)) {
     results.push({
       type: DiffType.DELETE,
       oldChild,
-      oldParent
+      parent
     });
   } else {
     if (isElement(oldChild)) {
@@ -86,7 +87,8 @@ function _diff(
           results.push({
             type: DiffType.REPLACE,
             oldChild,
-            newChild
+            newChild,
+            parent
           });
         } else {
           // type相等
@@ -96,36 +98,26 @@ function _diff(
               newChild.renderElement,
               (oldChild as FunctionElement<any>).renderElement,
               results,
-              oldChild.parent
+              oldChild
             );
           } else {
-            const newChildren = newChild.children;
-            const oldChildren = (oldChild as DOMElement<any>).children;
-            for (let i = 0; i < oldChildren.length; i++) {
-              _diff(newChildren[i], oldChildren[i], results, oldChild.parent);
-            }
-            if (newChildren.length > oldChildren.length) {
-              newChildren.slice(oldChildren.length).forEach(child => {
-                results.push({
-                  type: DiffType.CREATE,
-                  newChild: child
-                });
-              });
-            }
+            results.push(...reconcile(newChild, oldChild as DOMElement<any>));
           }
         }
       } else {
         results.push({
           type: DiffType.REPLACE,
           oldChild,
-          newChild
+          newChild,
+          parent
         });
       }
     } else if (isEmpty(oldChild)) {
       if (!isEmpty(newChild)) {
         results.push({
           type: DiffType.CREATE,
-          newChild
+          newChild,
+          parent
         });
       }
     } else {
@@ -135,7 +127,7 @@ function _diff(
           type: DiffType.REPLACE,
           oldChild,
           newChild,
-          oldParent
+          parent
         });
       } else {
         if (String(oldChild) !== String(newChild)) {
@@ -143,7 +135,7 @@ function _diff(
             type: DiffType.UPDATE_TEXT,
             oldChild,
             newChild,
-            oldParent
+            parent
           });
         }
       }
@@ -151,9 +143,9 @@ function _diff(
   }
 }
 
-export default function diff(newChild: Child, oldChild: Child): Diff[] {
+export default function diff(newElement: Element, oldElement: Element): Diff[] {
   const results: Diff[] = [];
-  _diff(newChild, oldChild, results);
+  _diff(newElement, oldElement, results, oldElement.parent);
   return results;
 }
 

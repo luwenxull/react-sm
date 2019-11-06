@@ -12,18 +12,15 @@ type DOM = HTMLElement | DocumentFragment;
 function append(element: Child, parent: DOM) {
   if (isElement(element)) {
     if (element.type === INNER_TextComponent) {
-      const { renderElement } = element as FunctionElement<any>;
-      if (!isEmpty(renderElement)) {
-        element.$dom = document.createTextNode(String(renderElement));
-        parent.appendChild(element.$dom);
-      }
+      const { renderElement } = element as FunctionElement<
+        typeof INNER_TextComponent
+      >;
+      // if (!isEmpty(renderElement)) {
+      element.$dom = document.createTextNode(String(renderElement));
+      parent.appendChild(element.$dom);
+      // }
     } else {
       _mount(element, parent);
-    }
-  } else {
-    // ignore undefine and null
-    if (!isEmpty(element)) {
-      parent.appendChild(document.createTextNode(String(element)));
     }
   }
 }
@@ -34,7 +31,7 @@ function _mount(element: Element, parent: DOM) {
     append(renderElement, parent);
   } else {
     let dom: DOM;
-    if (element.type === 'INNER_fragement') {
+    if (element.type === 'fragment') {
       dom = document.createDocumentFragment();
     } else {
       dom = document.createElement(element.type);

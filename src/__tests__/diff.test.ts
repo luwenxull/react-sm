@@ -5,23 +5,17 @@ import render from '../render';
 test('diff: reconcile', () => {
   const a = createElement('div', undefined, ['a']);
   const a1 = createElement('div', undefined, ['a', undefined, 'a1']);
-  const a2 = createElement('div', undefined, [
-    'a1',
-    'a2'
-    // undefined,
-  ]);
+  const a2 = createElement('div', undefined, ['a1', 'a2', undefined]);
   render(a);
   render(a1);
   render(a2);
   const results = reconcile(a1, a);
-  expect(results.length).toBe(2);
+  expect(results.length).toBe(1);
   expect(results[0].type).toBe(DiffType.CREATE);
-  expect(results[1].type).toBe(DiffType.CREATE);
   const results2 = reconcile(a2, a1);
-  expect(results2.length).toBe(3);
+  expect(results2.length).toBe(2);
   expect(results2[0].type).toBe(DiffType.UPDATE_TEXT);
-  expect(results2[1].type).toBe(DiffType.CREATE);
-  expect(results2[2].type).toBe(DiffType.DELETE);
+  expect(results2[1].type).toBe(DiffType.UPDATE_TEXT);
 });
 
 // test('diff: ', () => {

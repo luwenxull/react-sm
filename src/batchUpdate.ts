@@ -55,7 +55,8 @@ function _batchUpdate() {
       }
     }
     batchUpdateEntries.forEach(element => {
-      const diffs = diff(render(Object.assign({}, element)), element);
+      const copy = Object.assign({}, element);
+      const diffs = diff(render(element), copy);
       applyDiff(diffs);
     });
     _batchUpdatedListeners.forEach(fn => {

@@ -6,7 +6,7 @@ import createElement, {
   FunctionElement
 } from './creatElement';
 import { setStates } from './useState';
-import { isFunctionElement, isElement } from './util';
+import { isFunctionElement, isElement, isEmpty } from './util';
 import batchUpdate from './batchUpdate';
 import logger from './logger';
 import { isProduction } from './env';
@@ -21,14 +21,11 @@ function reuse(newElement: Element, oldElement: Element) {
       any
     >).childrenMapByKey;
   }
+  newElement.$dom = oldElement.$dom;
 }
 
 export const INNER_TextComponent: FunctionComponent = function(props) {
   return props.children as Child;
-};
-
-export const Fragement: FunctionComponent = function(props) {
-  return createElement('INNER_fragement', {}, props.children);
 };
 
 export default function render(element: Element): Element {
@@ -45,12 +42,11 @@ export default function render(element: Element): Element {
         states[index] = value;
         batchUpdate(element);
       });
-      element.renderElement;
       let renderElement = type(
         Object.assign({}, props, { children: element.children })
       );
       if (!isElement(renderElement)) {
-        if (type !== INNER_TextComponent) {
+        if (!isEmpty(renderElement) && type !== INNER_TextComponent) {
           renderElement = createElement(INNER_TextComponent, {}, renderElement);
         }
       }
@@ -73,38 +69,42 @@ export default function render(element: Element): Element {
       }
       const newChildrenMapByKey: typeof childrenMapByKey = new Map();
       const childrenNumKey = new Map();
-      element.children.forEach((child, index) => {
-        const _child = isElement(child)
-          ? child
-          : createElement(INNER_TextComponent, {}, child);
-        const { key, type } = _child;
-        !childrenNumKey.has(type) && childrenNumKey.set(type, 0);
-        !newChildrenMapByKey.has(type) &&
-          newChildrenMapByKey.set(type, new Map());
-        const _map = newChildrenMapByKey.get(type) as Map<
-          string | number,
-          Element
-        >;
-        let _key: string | number =
-          typeof key === 'string' ? key : childrenNumKey.get(type);
-        if (typeof _key === 'number') {
-          childrenNumKey.set(type, _key + 1);
-        }
-        if (childrenMapByKey.has(type)) {
-          const map = childrenMapByKey.get(type) as Map<
+      const filteredChildren: Element[] = [];
+      element.children.forEach(child => {
+        if (!isEmpty(child)) {
+          const _child = isElement(child)
+            ? child
+            : createElement(INNER_TextComponent, {}, child);
+          const { key, type } = _child;
+          !childrenNumKey.has(type) && childrenNumKey.set(type, 0);
+          !newChildrenMapByKey.has(type) &&
+            newChildrenMapByKey.set(type, new Map());
+          const _map = newChildrenMapByKey.get(type) as Map<
             string | number,
             Element
           >;
-          if (map.has(_key)) {
-            reuse(_child, map.get(_key) as Element);
+          let _key: string | number =
+            typeof key === 'string' ? key : childrenNumKey.get(type);
+          if (typeof _key === 'number') {
+            childrenNumKey.set(type, _key + 1);
           }
+          if (childrenMapByKey.has(type)) {
+            const map = childrenMapByKey.get(type) as Map<
+              string | number,
+              Element
+            >;
+            if (map.has(_key)) {
+              reuse(_child, map.get(_key) as Element);
+            }
+          }
+          _map.set(_key, _child);
+          _child.parent = element;
+          _child.depth = (element.depth as number) + 1;
+          render(_child);
+          filteredChildren.push(_child);
         }
-        _map.set(_key, _child);
-        element.children[index] = _child;
-        _child.parent = element;
-        _child.depth = (element.depth as number) + 1;
-        render(_child);
       });
+      element.children = filteredChildren;
       element.childrenMapByKey = newChildrenMapByKey;
     }
   }

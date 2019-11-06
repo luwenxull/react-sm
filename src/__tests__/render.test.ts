@@ -8,6 +8,26 @@ import createElement, {
 import { useState } from '../useState';
 import { onBatchUpdated } from '../batchUpdate';
 
+test('render: simple', () => {
+  let A: FunctionComponent = function() {
+    return undefined;
+  };
+  const a = createElement(A, {});
+  render(a);
+  expect(a.renderElement).toBeUndefined();
+  let B: FunctionComponent = function() {
+    return 'b';
+  };
+  const b = createElement(B, {});
+  render(b);
+  const text = b.renderElement as FunctionElement<any>;
+  expect(text.type).toBe(INNER_TextComponent);
+  expect(text.renderElement).toBe('b');
+  const c = createElement('div', undefined, [undefined, '1']);
+  render(c);
+  expect(c.children.length).toBe(1);
+});
+
 test('render: hierachy', () => {
   let A: FunctionComponent<{ text: string }> = function(props) {
     const [i] = useState(0);
