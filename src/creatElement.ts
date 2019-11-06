@@ -37,9 +37,10 @@ export interface DOMElement<T extends string = any> extends BaseElement {
   type: T;
   props?: Props;
   children: Child[];
-  keyedChildren: {
-    [props: string]: Element;
-  };
+  keyedChildren: Map<
+    string | FunctionComponent<any>,
+    Map<string | number, Element>
+  >;
 }
 
 export type Element = DOMElement | FunctionElement<FunctionComponent<any>>;
@@ -70,7 +71,7 @@ export default function createElement<
       props,
       children: isEmpty(children) ? [] : ([] as Child[]).concat(children),
       _isElement: true,
-      keyedChildren: {}
+      keyedChildren: new Map()
     };
   } else {
     element = {

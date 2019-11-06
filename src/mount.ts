@@ -1,12 +1,12 @@
 import { Element, Child, FunctionComponent } from './creatElement';
 import { isElement, isFunctionElement, isEmpty } from './util';
-import render, { _TextComponent } from './render';
+import render, { INNER_TextComponent } from './render';
 
 type DOM = HTMLElement | DocumentFragment;
 
 function append(element: Child, parent: DOM) {
   if (isElement(element)) {
-    if (element.type === _TextComponent) {
+    if (element.type === INNER_TextComponent) {
       const { renderElement } = element as any;
       if (!isEmpty(renderElement)) {
         element.$dom = document.createTextNode(String(renderElement));
@@ -29,7 +29,7 @@ function _mount(element: Element, parent: DOM) {
     append(renderElement, parent);
   } else {
     let dom: DOM;
-    if (element.type === 'fragment') {
+    if (element.type === 'INNER_fragement') {
       dom = document.createDocumentFragment();
     } else {
       dom = document.createElement(element.type);

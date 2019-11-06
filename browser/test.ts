@@ -1,6 +1,7 @@
 import createElement, { FunctionComponent } from '../src/creatElement';
 import mount from '../src/mount';
 import { useState } from '../src/useState';
+import { Fragement } from '../src/render';
 
 let Header: FunctionComponent<{ text: string }> = function (props) {
   return createElement('div', undefined, props.text)
@@ -18,17 +19,17 @@ let Count: FunctionComponent = function() {
   return date
 }
 
-let App: FunctionComponent<undefined> = function (props) {
+let App: FunctionComponent = function (props) {
   const [, _setApp] = useState('')
-  return createElement('fragment', undefined, [
+  return createElement(Fragement, {}, [
     createElement(Header, { text: 'this is header' }),
-    createElement(Count, undefined),
+    createElement(Count, {}),
     undefined,
     createElement(Footer, { text: 'this is footer' }),
   ])
 }
 
-const app = createElement(App, undefined)
+const app = createElement(App, {})
 
 mount(app, document.getElementById('app') as any);
 

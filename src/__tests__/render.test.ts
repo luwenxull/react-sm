@@ -1,37 +1,65 @@
-import render, { _TextComponent } from '../render';
+import render, { INNER_TextComponent } from '../render';
 import createElement, {
   FunctionComponent,
   FunctionElement,
-  DOMElement
+  DOMElement,
+  Element
 } from '../creatElement';
 import { useState } from '../useState';
 import { onBatchUpdated } from '../batchUpdate';
 
 test('render: hierachy', () => {
   let A: FunctionComponent<{ text: string }> = function(props) {
-    return `${props.text}`;
+    const [i] = useState(0);
+    return `${props.text}-${i}`;
   };
   let B: FunctionComponent = function() {
-    return createElement('div', {}, [
+    const [reverse] = useState(false);
+    let children = [
       createElement(A, { text: 'a1' }),
-      createElement(A, { text: 'a2', key: 'a2' })
-    ]);
+      createElement(A, { text: 'a2', key: 'a2' }),
+      createElement(A, { text: 'a3' })
+    ];
+    if (reverse) {
+      children = children.reverse();
+    }
+    return createElement('div', {}, children);
   };
   const b = createElement(B, {});
   render(b);
+  expect(b.states).toEqual([false]);
   expect(b.depth).toBe(0);
   expect(b.parent).toBeUndefined();
   const div = b.renderElement as DOMElement;
   expect(div.depth).toBe(1);
   expect(div.parent).toBe(b);
   const children = div.children;
-  expect(children.length).toBe(2);
-  const a2 = children[1] as FunctionElement<any>
-  expect(a2.key).toBe('a2')
-  expect(div.keyedChildren['a2']).toBe(a2)
-  const text = a2.renderElement as FunctionElement<any>
-  expect(text.type).toBe(_TextComponent)
-  expect(text.renderElement).toBe('a2')
+  expect(children.length).toBe(3);
+  const [a1, a2, a3] = children as FunctionElement<any>[];
+  expect(a1.key).toBeUndefined();
+  expect(a2.key).toBe('a2');
+  expect(a3.key).toBeUndefined();
+  expect((div.childrenMapByKey.get(A) as Map<any, any>).get(0)).toBe(a1);
+  expect((div.childrenMapByKey.get(A) as Map<any, any>).get('a2')).toBe(a2);
+  expect((div.childrenMapByKey.get(A) as Map<any, any>).get(1)).toBe(a3);
+  // const t1 = a1.renderElement as FunctionElement<any>
+  const t2 = a2.renderElement as FunctionElement<any>;
+  expect(t2.type).toBe(INNER_TextComponent);
+  expect(t2.renderElement).toBe('a2-0');
+  const b2 = Object.assign({}, b);
+  a1.states = [1];
+  a2.states = [2];
+  a3.states = [3];
+  b2.states = [true];
+  render(b2);
+  const [a11, a12, a13] = (b2.renderElement as DOMElement)
+    .children as FunctionElement<any>[];
+  const t11 = a11.renderElement as FunctionElement<any>;
+  const t12 = a12.renderElement as FunctionElement<any>;
+  const t13 = a13.renderElement as FunctionElement<any>;
+  expect(t11.renderElement).toBe('a3-1');
+  expect(t12.renderElement).toBe('a2-2');
+  expect(t13.renderElement).toBe('a1-3');
 });
 
 // test('set state', done => {

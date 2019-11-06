@@ -12,19 +12,21 @@ import logger from './logger';
 import { isProduction } from './env';
 
 function reuse(newElement: Element, oldElement: Element) {
-  if (newElement.type === oldElement.type) {
-    if (isFunctionElement(newElement)) {
-      newElement.states = (oldElement as FunctionElement<
-        FunctionComponent<any>
-      >).states;
-    } else {
-      newElement.keyedChildren = (oldElement as DOMElement).keyedChildren;
-    }
+  if (isFunctionElement(newElement)) {
+    newElement.states = (oldElement as FunctionElement<
+      FunctionComponent<any>
+    >).states;
+  } else {
+    newElement.childrenMapByKey = (oldElement as DOMElement).childrenMapByKey;
   }
 }
 
-export const _TextComponent: FunctionComponent = function(props) {
+export const INNER_TextComponent: FunctionComponent = function(props) {
   return props.children as Child;
+};
+
+export const Fragement: FunctionComponent = function(props) {
+  return createElement('INNER_fragement', {}, props.children);
 };
 
 export default function render(element: Element): Element {
@@ -34,54 +36,77 @@ export default function render(element: Element): Element {
     }
     if (isFunctionElement(element)) {
       const { states, props, type } = element;
+      if (!isProduction) {
+        logger.funtionComponentCallStack.push(type.name + '-' + element.depth);
+      }
       setStates(states, (index: number, value: unknown) => {
         states[index] = value;
         batchUpdate(element);
       });
-      if (!isProduction) {
-        logger.funtionComponentCallStack.push(type.name);
-      }
       let renderElement = type(
         Object.assign({}, props, { children: element.children })
       );
       if (!isElement(renderElement)) {
-        if (type !== _TextComponent) {
-          renderElement = createElement(
-            _TextComponent,
-            {},
-            renderElement
-          );
+        if (type !== INNER_TextComponent) {
+          renderElement = createElement(INNER_TextComponent, {}, renderElement);
         }
       }
       if (isElement(renderElement)) {
         renderElement.parent = element;
         renderElement.depth = (element.depth as number) + 1;
-        if (isElement(element.renderElement)) {
+        if (
+          isElement(element.renderElement) &&
+          element.renderElement.type === renderElement.type
+        ) {
           reuse(renderElement, element.renderElement);
         }
         render(renderElement);
       }
       element.renderElement = renderElement;
     } else {
-      const { keyedChildren } = element;
-      const _keyedChildren: typeof keyedChildren = {};
+      const { childrenMapByKey, type } = element;
+      if (!isProduction) {
+        logger.funtionComponentCallStack.push(type + '-' + element.depth);
+      }
+      const newChildrenMapByKey: typeof childrenMapByKey = new Map();
+      const childrenNumKey = new Map();
       element.children.forEach((child, index) => {
         const _child = isElement(child)
           ? child
-          : createElement(_TextComponent, {}, child);
-        const { key } = _child;
-        if (typeof key === 'string') {
-          if (keyedChildren[key]) {
-            reuse(_child, keyedChildren[key]);
+          : createElement(INNER_TextComponent, {}, child);
+        const { key, type } = _child;
+        !childrenNumKey.has(type) && childrenNumKey.set(type, 0);
+        !newChildrenMapByKey.has(type) &&
+          newChildrenMapByKey.set(type, new Map());
+        const _map = newChildrenMapByKey.get(type) as Map<
+          string | number,
+          Element
+        >;
+        let _key: string | number =
+          typeof key === 'string' ? key : childrenNumKey.get(type);
+        if (childrenMapByKey.has(type)) {
+          const map = childrenMapByKey.get(type) as Map<
+            string | number,
+            Element
+          >;
+          if (typeof _key === 'number') {
+            childrenNumKey.set(type, _key + 1);
           }
-          _keyedChildren[key] = _child;
+          if (map.has(_key)) {
+            reuse(_child, map.get(_key) as Element);
+          }
+        } else {
+          if (typeof _key === 'number') {
+            childrenNumKey.set(type, _key + 1);
+          }
         }
+        _map.set(_key, _child);
         element.children[index] = _child;
         _child.parent = element;
         _child.depth = (element.depth as number) + 1;
         render(_child);
       });
-      element.keyedChildren = _keyedChildren;
+      element.childrenMapByKey = newChildrenMapByKey;
     }
   }
   return element;
