@@ -12,42 +12,42 @@ export type Children = Child | Child[];
 
 export type UserProps = Props;
 
-export type FunctionComponent<T extends UserProps = {}> = (
+export type FunctionComponent<T extends UserProps = any> = (
   props: T & FunctionProps
 ) => Child;
 
-export interface BaseElement {
-  parent?: Element;
+export type ElementType = FunctionComponent | string;
+
+export interface BaseElement<T extends ElementType> {
+  type: T;
+  parent?: Element<any>;
   depth?: number;
   key?: string;
   $dom?: HTMLElement | Text;
   _isElement: true;
 }
 
-export interface FunctionElement<T extends FunctionComponent<any>>
-  extends BaseElement {
-  type: T;
+export interface FunctionElement<T extends FunctionComponent>
+  extends BaseElement<T> {
   states: any[];
   props: T extends FunctionComponent<infer U> ? U : never;
   renderElement?: ReturnType<T>;
   children?: Children;
 }
 
-export interface DOMElement<T extends string = any> extends BaseElement {
-  type: T;
+export interface DOMElement<T extends string> extends BaseElement<T> {
   props?: Props;
   children: Child[];
-  keyedChildren: Map<
-    string | FunctionComponent<any>,
-    Map<string | number, Element>
-  >;
+  childrenMapByKey: Map<ElementType, Map<string | number, Element>>;
 }
 
-export type Element = DOMElement | FunctionElement<FunctionComponent<any>>;
+export type Element<T extends ElementType = any> = T extends string
+  ? DOMElement<T>
+  : (T extends FunctionComponent ? FunctionElement<T> : never);
 export type Primitive = string | number | null | undefined;
 export type Child = Element | Primitive;
 
-export default function createElement<T extends FunctionComponent<any>>(
+export default function createElement<T extends FunctionComponent>(
   type: T,
   props: T extends FunctionComponent<infer U> ? (U & { key?: string }) : never,
   children?: Children
@@ -57,30 +57,28 @@ export default function createElement<T extends string>(
   props?: Props,
   children?: Children
 ): DOMElement<T>;
-export default function createElement<
-  T extends string | FunctionComponent<any>
->(
+export default function createElement<T extends ElementType>(
   type: T,
   props?: any,
   children?: Child | Child[]
-): FunctionElement<FunctionComponent<any>> | DOMElement {
-  let element: Element;
+): Element<T> {
+  let element: any;
   if (typeof type === 'string') {
     element = {
       type,
       props,
       children: isEmpty(children) ? [] : ([] as Child[]).concat(children),
       _isElement: true,
-      keyedChildren: new Map()
-    };
+      childrenMapByKey: new Map()
+    } as DOMElement<string>;
   } else {
     element = {
-      type: type as FunctionComponent<any>,
+      type,
       states: [],
       props,
       children,
       _isElement: true
-    };
+    } as FunctionElement<FunctionComponent<any>>;
   }
   if (
     typeof props === 'object' &&

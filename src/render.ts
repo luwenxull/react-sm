@@ -17,7 +17,9 @@ function reuse(newElement: Element, oldElement: Element) {
       FunctionComponent<any>
     >).states;
   } else {
-    newElement.childrenMapByKey = (oldElement as DOMElement).childrenMapByKey;
+    newElement.childrenMapByKey = (oldElement as DOMElement<
+      any
+    >).childrenMapByKey;
   }
 }
 
@@ -43,6 +45,7 @@ export default function render(element: Element): Element {
         states[index] = value;
         batchUpdate(element);
       });
+      element.renderElement;
       let renderElement = type(
         Object.assign({}, props, { children: element.children })
       );
@@ -84,20 +87,16 @@ export default function render(element: Element): Element {
         >;
         let _key: string | number =
           typeof key === 'string' ? key : childrenNumKey.get(type);
+        if (typeof _key === 'number') {
+          childrenNumKey.set(type, _key + 1);
+        }
         if (childrenMapByKey.has(type)) {
           const map = childrenMapByKey.get(type) as Map<
             string | number,
             Element
           >;
-          if (typeof _key === 'number') {
-            childrenNumKey.set(type, _key + 1);
-          }
           if (map.has(_key)) {
             reuse(_child, map.get(_key) as Element);
-          }
-        } else {
-          if (typeof _key === 'number') {
-            childrenNumKey.set(type, _key + 1);
           }
         }
         _map.set(_key, _child);

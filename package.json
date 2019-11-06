@@ -18,7 +18,7 @@
     "webpack-cli": "^3.3.9"
   },
   "scripts": {
-    "test": "jest --verbose --watchAll",
+    "test": "jest --verbose --watch",
     "pretty:mac": "prettier --write './src/**/*.ts'",
     "pretty:windows": "prettier --write ./src/**/*.ts",
     "browser-test": "webpack --watch"

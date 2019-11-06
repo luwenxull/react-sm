@@ -1,7 +1,8 @@
-import createElement, { FunctionComponent } from '../src/creatElement';
+import createElement, { FunctionComponent, DOMElement } from '../src/creatElement';
 import mount from '../src/mount';
 import { useState } from '../src/useState';
-import { Fragement } from '../src/render';
+import render, { Fragement } from '../src/render';
+import { reconcile } from '../src/diff';
 
 let Header: FunctionComponent<{ text: string }> = function (props) {
   return createElement('div', undefined, props.text)
@@ -23,6 +24,7 @@ let App: FunctionComponent = function (props) {
   const [, _setApp] = useState('')
   return createElement(Fragement, {}, [
     createElement(Header, { text: 'this is header' }),
+    createElement(Header, { text: 'this is header2' }),
     createElement(Count, {}),
     undefined,
     createElement(Footer, { text: 'this is footer' }),
@@ -40,4 +42,21 @@ mount(app, document.getElementById('app') as any);
   }
 }
 
+const a = createElement('div', undefined, [
+  'a'
+])
+const a1 = createElement('div', undefined, [
+  'a',
+  undefined,
+  'a1'
+])
+const a2 = createElement('div', undefined, [
+  'a1',
+  'a2',
+  // undefined,
+])
+render(a)
+render(a1)
+render(a2)
+const results2 = reconcile(a2, a1)
 console.log(app)

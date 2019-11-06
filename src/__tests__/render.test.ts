@@ -30,7 +30,7 @@ test('render: hierachy', () => {
   expect(b.states).toEqual([false]);
   expect(b.depth).toBe(0);
   expect(b.parent).toBeUndefined();
-  const div = b.renderElement as DOMElement;
+  const div = b.renderElement as DOMElement<any>;
   expect(div.depth).toBe(1);
   expect(div.parent).toBe(b);
   const children = div.children;
@@ -52,7 +52,7 @@ test('render: hierachy', () => {
   a3.states = [3];
   b2.states = [true];
   render(b2);
-  const [a11, a12, a13] = (b2.renderElement as DOMElement)
+  const [a11, a12, a13] = (b2.renderElement as DOMElement<any>)
     .children as FunctionElement<any>[];
   const t11 = a11.renderElement as FunctionElement<any>;
   const t12 = a12.renderElement as FunctionElement<any>;

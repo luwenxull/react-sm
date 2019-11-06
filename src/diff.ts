@@ -1,16 +1,70 @@
-import { Element, Child, FunctionElement } from './creatElement';
+import {
+  Element,
+  Child,
+  FunctionElement,
+  DOMElement,
+  FunctionComponent,
+  ElementType
+} from './creatElement';
 import { isElement, isFunctionElement, isEmpty } from './util';
 
 export enum DiffType {
   CREATE,
   DELETE,
-  REPLACE
+  REPLACE,
+  UPDATE_TEXT
 }
 export interface Diff {
   type: DiffType;
   oldChild?: Child;
   newChild?: Child;
   oldParent?: Element;
+}
+
+export function reconcile(
+  newElement: DOMElement<any>,
+  oldElement: DOMElement<any>
+): Diff[] {
+  debugger;
+  const results: Diff[] = [];
+  const {
+    children: newChildren,
+    childrenMapByKey: newChildrenMapByKey
+  } = newElement;
+  const {
+    children: oldChildren,
+    childrenMapByKey: oldChildrenMapByKey
+  } = oldElement;
+  const childrenNumKey: Map<ElementType, number> = new Map();
+  const childrendNeedKeep: Set<Element> = new Set();
+  (newChildren as Element[]).forEach(element => {
+    const { key, type } = element;
+    !childrenNumKey.has(type) && childrenNumKey.set(type, 0);
+    const _key =
+      typeof key === 'string' ? key : (childrenNumKey.get(type) as number);
+    if (typeof _key === 'number') {
+      childrenNumKey.set(type, _key + 1);
+    }
+    const oldMap = oldChildrenMapByKey.get(type);
+    if (oldMap && oldMap.has(_key)) {
+      _diff(element, oldMap.get(_key), results);
+      childrendNeedKeep.add(oldMap.get(_key) as Element);
+    } else {
+      results.push({
+        type: DiffType.CREATE,
+        newChild: element
+      });
+    }
+  });
+  (oldChildren as Element[]).forEach(element => {
+    if (!childrendNeedKeep.has(element)) {
+      results.push({
+        type: DiffType.DELETE,
+        newChild: element
+      });
+    }
+  });
+  return results;
 }
 
 function _diff(
@@ -37,7 +91,7 @@ function _diff(
         } else {
           // type相等
           if (isFunctionElement(newChild)) {
-            // so as newElement
+            // so as oldElement
             _diff(
               newChild.renderElement,
               (oldChild as FunctionElement<any>).renderElement,
@@ -45,8 +99,8 @@ function _diff(
               oldChild.parent
             );
           } else {
-            const newChildren = ([] as Child[]).concat(newChild.children);
-            const oldChildren = ([] as Child[]).concat(oldChild.children);
+            const newChildren = newChild.children;
+            const oldChildren = (oldChild as DOMElement<any>).children;
             for (let i = 0; i < oldChildren.length; i++) {
               _diff(newChildren[i], oldChildren[i], results, oldChild.parent);
             }
@@ -86,7 +140,7 @@ function _diff(
       } else {
         if (String(oldChild) !== String(newChild)) {
           results.push({
-            type: DiffType.REPLACE,
+            type: DiffType.UPDATE_TEXT,
             oldChild,
             newChild,
             oldParent

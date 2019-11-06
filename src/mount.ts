@@ -1,4 +1,9 @@
-import { Element, Child, FunctionComponent } from './creatElement';
+import {
+  Element,
+  Child,
+  FunctionComponent,
+  FunctionElement
+} from './creatElement';
 import { isElement, isFunctionElement, isEmpty } from './util';
 import render, { INNER_TextComponent } from './render';
 
@@ -7,7 +12,7 @@ type DOM = HTMLElement | DocumentFragment;
 function append(element: Child, parent: DOM) {
   if (isElement(element)) {
     if (element.type === INNER_TextComponent) {
-      const { renderElement } = element as any;
+      const { renderElement } = element as FunctionElement<any>;
       if (!isEmpty(renderElement)) {
         element.$dom = document.createTextNode(String(renderElement));
         parent.appendChild(element.$dom);

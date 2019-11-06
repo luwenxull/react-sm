@@ -1,18 +1,40 @@
-import diff, { move, DiffType } from '../diff';
+import diff, { move, DiffType, reconcile } from '../diff';
 import createElement, { FunctionComponent } from '../creatElement';
 import render from '../render';
 
-test('diff: ', () => {
-  let A: FunctionComponent<{ text: string }> = function(props) {
-    return props.text;
-  };
-  const a = createElement(A, { text: 'a' });
-  const a1 = createElement(A, { text: 'a1' });
-  const results = diff(render(a1), render(a));
-  expect(results.length).toBe(1);
-  const diff0 = results[0];
-  expect(diff0.type).toBe(DiffType.REPLACE);
+test('diff: reconcile', () => {
+  const a = createElement('div', undefined, ['a']);
+  const a1 = createElement('div', undefined, ['a', undefined, 'a1']);
+  const a2 = createElement('div', undefined, [
+    'a1',
+    'a2'
+    // undefined,
+  ]);
+  render(a);
+  render(a1);
+  render(a2);
+  const results = reconcile(a1, a);
+  expect(results.length).toBe(2);
+  expect(results[0].type).toBe(DiffType.CREATE);
+  expect(results[1].type).toBe(DiffType.CREATE);
+  const results2 = reconcile(a2, a1);
+  expect(results2.length).toBe(3);
+  expect(results2[0].type).toBe(DiffType.UPDATE_TEXT);
+  expect(results2[1].type).toBe(DiffType.CREATE);
+  expect(results2[2].type).toBe(DiffType.DELETE);
 });
+
+// test('diff: ', () => {
+//   let A: FunctionComponent<{ text: string }> = function(props) {
+//     return props.text;
+//   };
+//   const a = createElement(A, { text: 'a' });
+//   const a1 = createElement(A, { text: 'a1' });
+//   const results = diff(render(a1), render(a));
+//   expect(results.length).toBe(1);
+//   const diff0 = results[0];
+//   expect(diff0.type).toBe(DiffType.REPLACE);
+// });
 
 // test('diff', () => {
 //   let A: FunctionComponent<{ text: string }> = function(props) {
