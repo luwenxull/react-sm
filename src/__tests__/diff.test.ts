@@ -1,34 +1,42 @@
 import diff, { move, DiffType, reconcile } from '../diff';
-import createElement, { FunctionComponent } from '../creatElement';
-import render from '../render';
+import createElement, {
+  FunctionComponent,
+  FunctionElement
+} from '../creatElement';
+import render, { INNER_TextComponent } from '../render';
 
 test('diff: reconcile', () => {
   const a = createElement('div', undefined, ['a']);
-  const a1 = createElement('div', undefined, ['a', undefined, 'a1']);
-  const a2 = createElement('div', undefined, ['a1', 'a2', undefined]);
+  const a1 = createElement('div', undefined, ['a', 'a1']);
+  const a2 = createElement('div', undefined, ['a1', undefined]);
   render(a);
   render(a1);
   render(a2);
   const results = reconcile(a1, a);
   expect(results.length).toBe(1);
   expect(results[0].type).toBe(DiffType.CREATE);
+  const newChild = results[0].newChild as FunctionElement<any>;
+  expect(newChild).not.toBeUndefined();
+  expect(newChild.type).toBe(INNER_TextComponent);
+  expect(newChild.renderElement).toBe('a1');
   const results2 = reconcile(a2, a1);
   expect(results2.length).toBe(2);
   expect(results2[0].type).toBe(DiffType.UPDATE_TEXT);
-  expect(results2[1].type).toBe(DiffType.UPDATE_TEXT);
+  expect(results2[1].type).toBe(DiffType.DELETE);
+  expect(results2[1].parent).toBe(a1);
 });
 
-// test('diff: ', () => {
-//   let A: FunctionComponent<{ text: string }> = function(props) {
-//     return props.text;
-//   };
-//   const a = createElement(A, { text: 'a' });
-//   const a1 = createElement(A, { text: 'a1' });
-//   const results = diff(render(a1), render(a));
-//   expect(results.length).toBe(1);
-//   const diff0 = results[0];
-//   expect(diff0.type).toBe(DiffType.REPLACE);
-// });
+test('diff: ', () => {
+  let A: FunctionComponent<{ text: string }> = function(props) {
+    return props.text;
+  };
+  const a = createElement(A, { text: 'a' });
+  const a1 = createElement(A, { text: 'a1' });
+  const results = diff(render(a1), render(a));
+  expect(results.length).toBe(1);
+  const diff0 = results[0];
+  expect(diff0.type).toBe(DiffType.UPDATE_TEXT);
+});
 
 // test('diff', () => {
 //   let A: FunctionComponent<{ text: string }> = function(props) {

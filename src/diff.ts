@@ -3,7 +3,6 @@ import {
   Child,
   FunctionElement,
   DOMElement,
-  FunctionComponent,
   ElementType
 } from './creatElement';
 import { isElement, isFunctionElement, isEmpty } from './util';
@@ -61,7 +60,7 @@ export function reconcile(
       results.push({
         type: DiffType.DELETE,
         oldChild: element,
-        parent: element
+        parent: oldElement
       });
     }
   });
@@ -102,6 +101,7 @@ function _diff(
             );
           } else {
             results.push(...reconcile(newChild, oldChild as DOMElement<any>));
+            // todo sort
           }
         }
       } else {

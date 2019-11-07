@@ -42,3 +42,12 @@ mount(app, document.getElementById('app') as any);
 }
 
 console.log(app)
+
+const a = createElement('div', undefined, ['a']);
+const a1 = createElement('div', undefined, ['a', 'a1']);
+const a2 = createElement('div', undefined, ['a1', undefined]);
+render(a);
+render(a1);
+render(a2);
+
+reconcile(a2, a1)
