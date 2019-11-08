@@ -1,4 +1,4 @@
-import diff, { move, DiffType, reconcile } from '../diff';
+import diff, { move, DiffType, resolveChildrenForDOMElement } from '../diff';
 import createElement, {
   FunctionComponent,
   FunctionElement
@@ -12,14 +12,14 @@ test('diff: reconcile', () => {
   render(a);
   render(a1);
   render(a2);
-  const results = reconcile(a1, a);
+  const results = resolveChildrenForDOMElement(a1, a);
   expect(results.length).toBe(1);
   expect(results[0].type).toBe(DiffType.CREATE);
-  const newChild = results[0].newChild as FunctionElement<any>;
+  const newChild = results[0].newChild as FunctionElement;
   expect(newChild).not.toBeUndefined();
   expect(newChild.type).toBe(INNER_TextComponent);
   expect(newChild.renderElement).toBe('a1');
-  const results2 = reconcile(a2, a1);
+  const results2 = resolveChildrenForDOMElement(a2, a1);
   expect(results2.length).toBe(2);
   expect(results2[0].type).toBe(DiffType.UPDATE_TEXT);
   expect(results2[1].type).toBe(DiffType.DELETE);

@@ -5,15 +5,15 @@ export default function applyDiff(diffs: Diff[]) {
   diffs.forEach(diff => {
     switch (diff.type) {
       case DiffType.UPDATE_TEXT: {
-        const parent = diff.parent as FunctionElement<any>;
-        (parent.$dom as Text).nodeValue = String(diff.newChild);
+        const parent = diff.pair.parent as FunctionElement;
+        (parent.$dom as Text).nodeValue = String(diff.pair.newVal);
       }
       case DiffType.CREATE: {
         break;
       }
       case DiffType.DELETE: {
-        const parent = findClosetParentWithDom(diff.oldChild as Element);
-        const dom = parent.$dom as HTMLElement;
+        // const parent = findClosetParentWithDom(diff.oldChild as Element);
+        // const dom = parent.$dom as HTMLElement;
         // dom.removeChild
         break;
       }

@@ -2,7 +2,7 @@ import createElement, { FunctionComponent, DOMElement } from '../src/creatElemen
 import mount from '../src/mount';
 import { useState } from '../src/useState';
 import render from '../src/render';
-import { reconcile } from '../src/diff';
+import { resolveChildrenForDOMElement } from '../src/diff';
 
 let Header: FunctionComponent<{ text: string }> = function (props) {
   return createElement('div', undefined, props.text)
@@ -50,4 +50,4 @@ render(a);
 render(a1);
 render(a2);
 
-reconcile(a2, a1)
+resolveChildrenForDOMElement(a2, a1)

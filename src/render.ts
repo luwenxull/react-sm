@@ -3,7 +3,8 @@ import createElement, {
   Child,
   DOMElement,
   FunctionComponent,
-  FunctionElement
+  FunctionElement,
+  ElementType
 } from './creatElement';
 import { setStates } from './useState';
 import { isFunctionElement, isElement, isEmpty } from './util';
@@ -13,24 +14,20 @@ import { isProduction } from './env';
 
 function reuse(newElement: Element, oldElement: Element) {
   if (isFunctionElement(newElement)) {
-    newElement.states = (oldElement as FunctionElement<
-      FunctionComponent<any>
-    >).states;
+    newElement.states = (oldElement as FunctionElement).states;
   } else {
-    newElement.childrenMapByKey = (oldElement as DOMElement<
-      any
-    >).childrenMapByKey;
+    newElement.childrenMapByKey = (oldElement as DOMElement).childrenMapByKey;
   }
-  newElement.$dom = oldElement.$dom;
+  if (oldElement.$dom) {
+    newElement.$dom = oldElement.$dom;
+  }
 }
 
 export const INNER_TextComponent: FunctionComponent = function(props) {
   return props.children as Child;
 };
 
-function renderFunctionElement(
-  element: FunctionElement<any>
-): FunctionElement<any> {
+function renderFunctionElement(element: FunctionElement): FunctionElement {
   const { states, props, type } = element;
   if (!isProduction) {
     logger.funtionComponentCallStack.push(type.name + '-' + element.depth);
@@ -62,13 +59,13 @@ function renderFunctionElement(
   return element;
 }
 
-function renderDOMElement(element: DOMElement<any>): DOMElement<any> {
+function renderDOMElement(element: DOMElement): DOMElement {
   const { childrenMapByKey, type } = element;
   if (!isProduction) {
     logger.funtionComponentCallStack.push(type + '-' + element.depth);
   }
   const newChildrenMapByKey: typeof childrenMapByKey = new Map();
-  const childrenNumKey = new Map();
+  const childrenNumKey: Map<ElementType, number> = new Map();
   const filteredChildren: Element[] = [];
   element.children.forEach(child => {
     if (!isEmpty(child)) {
@@ -84,7 +81,7 @@ function renderDOMElement(element: DOMElement<any>): DOMElement<any> {
         Element
       >;
       let _key: string | number =
-        typeof key === 'string' ? key : childrenNumKey.get(type);
+        typeof key === 'string' ? key : (childrenNumKey.get(type) as number);
       if (typeof _key === 'number') {
         childrenNumKey.set(type, _key + 1);
       }

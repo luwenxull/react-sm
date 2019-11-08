@@ -6,9 +6,7 @@ export function isElement(element: Child): element is Element {
   return typeof element === 'object' && element !== null && element._isElement;
 }
 
-export function isFunctionElement(
-  element?: Child
-): element is FunctionElement<any> {
+export function isFunctionElement(element?: Child): element is FunctionElement {
   return (
     typeof element === 'object' &&
     element !== null &&

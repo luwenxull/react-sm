@@ -6,6 +6,8 @@ import {
   ElementType
 } from './creatElement';
 import { isElement, isFunctionElement, isEmpty } from './util';
+import { INNER_TextComponent } from './render';
+import applyDiff from './applyDiff';
 
 export enum DiffType {
   CREATE,
@@ -15,16 +17,24 @@ export enum DiffType {
 }
 export interface Diff {
   type: DiffType;
-  oldChild?: Child;
-  newChild?: Child;
-  parent: Element | undefined;
+  pair: Pair;
 }
 
-export function reconcile(
-  newElement: DOMElement<any>,
-  oldElement: DOMElement<any>
-): Diff[] {
-  const results: Diff[] = [];
+interface Pair {
+  newVal: Child;
+  oldVal: Child;
+  parent?: Element;
+}
+
+export function resolveChildrenForDOMElement(
+  newElement: DOMElement,
+  oldElement: DOMElement
+): {
+  diffs: Diff[];
+  pendingPairs: Pair[];
+} {
+  const diffs: Diff[] = [];
+  const pendingPairs: Pair[] = [];
   const {
     children: newChildren
     // childrenMapByKey: newChildrenMapByKey
@@ -45,141 +55,174 @@ export function reconcile(
     }
     const oldMap = oldChildrenMapByKey.get(type);
     if (oldMap && oldMap.has(_key)) {
-      _diff(element, oldMap.get(_key), results, oldElement);
+      // _diff(element, oldMap.get(_key), diffs, oldElement);
+      pendingPairs.push({ newVal: element, oldVal: oldMap.get(_key) });
       childrendNeedKeep.add(oldMap.get(_key) as Element);
     } else {
-      results.push({
+      diffs.push({
         type: DiffType.CREATE,
-        newChild: element,
-        parent: oldElement
+        pair: {
+          newVal: element,
+          oldVal: undefined
+        }
       });
     }
   });
   (oldChildren as Element[]).forEach(element => {
     if (!childrendNeedKeep.has(element)) {
-      results.push({
+      diffs.push({
         type: DiffType.DELETE,
-        oldChild: element,
-        parent: oldElement
+        pair: {
+          oldVal: element,
+          newVal: undefined
+        }
       });
     }
   });
-  return results;
+  return {
+    diffs,
+    pendingPairs
+  };
 }
 
-function _diff(
-  newChild: Child,
-  oldChild: Child,
-  results: Diff[],
-  parent: Element | undefined
-) {
-  if (isEmpty(newChild) && !isEmpty(oldChild)) {
-    results.push({
-      type: DiffType.DELETE,
-      oldChild,
-      parent
-    });
-  } else {
-    if (isElement(oldChild)) {
-      if (isElement(newChild)) {
-        if (newChild.type !== oldChild.type) {
-          results.push({
+function diff(
+  pair: Pair
+): {
+  diffs: Diff[];
+  pendingPairs: Pair[];
+} {
+  const { newVal, oldVal, parent } = pair;
+  const diffs: Diff[] = [];
+  const pendingPairs: Pair[] = [];
+  if (isEmpty(newVal)) {
+    if (!isEmpty(oldVal)) {
+      diffs.push({
+        type: DiffType.DELETE,
+        pair
+      });
+    } /* else oldchild is empty, nothing to do */
+  } /* new child not empty */ else {
+    if (isElement(oldVal)) {
+      if (isElement(newVal)) {
+        if (newVal.type !== oldVal.type) {
+          diffs.push({
             type: DiffType.REPLACE,
-            oldChild,
-            newChild,
-            parent
+            pair
           });
         } else {
           // type相等
-          if (isFunctionElement(newChild)) {
+          if (isFunctionElement(newVal)) {
             // so as oldElement
-            _diff(
-              newChild.renderElement,
-              (oldChild as FunctionElement<any>).renderElement,
-              results,
-              oldChild
-            );
+            const pair: Pair = {
+              newVal: newVal.renderElement,
+              oldVal: (<FunctionElement>oldVal).renderElement
+              // parent: newVal
+            };
+            if (newVal.type === INNER_TextComponent) {
+              pair.parent = newVal;
+            }
+            pendingPairs.push(pair);
           } else {
-            results.push(...reconcile(newChild, oldChild as DOMElement<any>));
+            const results = resolveChildrenForDOMElement(
+              newVal,
+              oldVal as DOMElement
+            );
+            diffs.push(...results.diffs);
+            pendingPairs.push(...results.pendingPairs);
             // todo sort
           }
         }
       } else {
-        results.push({
+        diffs.push({
           type: DiffType.REPLACE,
-          oldChild,
-          newChild,
-          parent
+          pair
         });
       }
-    } else if (isEmpty(oldChild)) {
-      if (!isEmpty(newChild)) {
-        results.push({
-          type: DiffType.CREATE,
-          newChild,
-          parent
-        });
-      }
-    } else {
-      // primitive
-      if (isElement(newChild)) {
-        results.push({
+    } else if (isEmpty(oldVal)) {
+      diffs.push({
+        type: DiffType.CREATE,
+        pair
+      });
+    } /* primitive */ else {
+      if (isElement(newVal)) {
+        diffs.push({
           type: DiffType.REPLACE,
-          oldChild,
-          newChild,
-          parent
+          pair
         });
       } else {
-        if (String(oldChild) !== String(newChild)) {
-          results.push({
+        if (String(oldVal) !== String(newVal)) {
+          diffs.push({
             type: DiffType.UPDATE_TEXT,
-            oldChild,
-            newChild,
-            parent
+            pair
           });
         }
       }
     }
   }
+  return {
+    diffs,
+    pendingPairs
+  };
 }
 
-export default function diff(newElement: Element, oldElement: Element): Diff[] {
-  const results: Diff[] = [];
-  _diff(newElement, oldElement, results, oldElement.parent);
-  return results;
-}
-
-type ElementWithKey = { key: string };
-
-export function move(arr: unknown[], value: unknown, toIndex: number): void {
-  let fromIndex = arr.indexOf(value);
-  if (fromIndex !== toIndex) {
-    arr.splice(fromIndex, 1);
-    arr.splice(toIndex, 0, value);
+export default function requestDiffHandler(
+  newVal: FunctionElement,
+  oldVal: FunctionElement,
+  inspector?: (diffs: Diff[], pairs: Pair[]) => void
+): () => void {
+  const entryPair = [{ newVal, oldVal }];
+  // let diffs:Diff[] = []
+  // let pendingPairs: Pair[] = []
+  function handleDiffPair(pairs: Pair[]) {
+    pairs.forEach(pair => {
+      let { diffs, pendingPairs } = diff(pair);
+      inspector && inspector(diffs, pairs);
+      applyDiff(diffs);
+      if (pendingPairs.length) {
+        handleDiffPair(pendingPairs);
+      }
+    });
   }
+
+  return function() {
+    entryPair.forEach(pair => {
+      handleDiffPair([pair]);
+    });
+  };
 }
 
-export function key2Index(arr: ElementWithKey[]) {
-  return arr.reduce((acc: { [prop: string]: number }, item, index) => {
-    acc[item.key] = index;
-    return acc;
-  }, {});
-}
+// type ElementWithKey = { key: string };
 
-function diff2(oldArr: ElementWithKey[], newArr: ElementWithKey[]) {
-  const newKey2Index = key2Index(newArr);
-  const current = oldArr.filter(
-    ele => typeof newKey2Index[ele.key] === 'number'
-  );
-  const sorted = current.sort((a, b) => {
-    return newKey2Index[a.key] - newKey2Index[b.key];
-  });
-  let startIndex = 0;
-  let endIndex = current.length - 1;
-  while (startIndex < endIndex) {
-    move(current, sorted[startIndex], 0);
-    move(current, sorted[endIndex], endIndex);
-    startIndex++;
-    endIndex--;
-  }
-}
+// export function move(arr: unknown[], value: unknown, toIndex: number): void {
+//   let fromIndex = arr.indexOf(value);
+//   if (fromIndex !== toIndex) {
+//     arr.splice(fromIndex, 1);
+//     arr.splice(toIndex, 0, value);
+//   }
+// }
+
+// export function key2Index(arr: ElementWithKey[]) {
+//   return arr.reduce((acc: { [prop: string]: number }, item, index) => {
+//     acc[item.key] = index;
+//     return acc;
+//   }, {});
+// }
+
+// function diff2(oldArr: ElementWithKey[], newArr: ElementWithKey[]) {
+//   const newKey2Index = key2Index(newArr);
+//   const current = oldArr.filter(
+//     ele => typeof newKey2Index[ele.key] === 'number'
+//   );
+//   const sorted = current.sort((a, b) => {
+//     return newKey2Index[a.key] - newKey2Index[b.key];
+//   });
+//   let startIndex = 0;
+//   let endIndex = current.length - 1;
+//   while (startIndex < endIndex) {
+//     move(current, sorted[startIndex], 0);
+//     move(current, sorted[endIndex], endIndex);
+//     startIndex++;
+
+//     endIndex--;
+//   }
+// }

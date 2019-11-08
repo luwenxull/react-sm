@@ -27,7 +27,7 @@ export interface BaseElement<T extends ElementType> {
   _isElement: true;
 }
 
-export interface FunctionElement<T extends FunctionComponent>
+export interface FunctionElement<T extends FunctionComponent = any>
   extends BaseElement<T> {
   states: any[];
   props: T extends FunctionComponent<infer U> ? U : never;
@@ -35,7 +35,7 @@ export interface FunctionElement<T extends FunctionComponent>
   children?: Children;
 }
 
-export interface DOMElement<T extends string> extends BaseElement<T> {
+export interface DOMElement<T extends string = any> extends BaseElement<T> {
   props?: Props;
   children: Child[];
   childrenMapByKey: Map<ElementType, Map<string | number, Element>>;
@@ -78,7 +78,7 @@ export default function createElement<T extends ElementType>(
       props,
       children,
       _isElement: true
-    } as FunctionElement<FunctionComponent<any>>;
+    } as FunctionElement;
   }
   if (
     typeof props === 'object' &&
