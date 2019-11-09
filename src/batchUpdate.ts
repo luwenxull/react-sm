@@ -16,7 +16,7 @@ const _tiker = {
     : (fn: any) => setTimeout(fn, 16),
   cancel: _isRequestAnimationFrameAvailable
     ? (id: number) => cancelAnimationFrame(id)
-    : (id: number) => clearTimeout(id)
+    : (id: number) => clearTimeout(id),
 };
 
 /**
@@ -55,7 +55,7 @@ function _batchUpdate() {
     }
     batchUpdateEntries.forEach(element => {
       const copy = Object.assign({}, element);
-      requestDiffHandler(render(element) as FunctionElement, copy)()
+      requestDiffHandler(render(element) as FunctionElement, copy)();
     });
     _batchUpdatedListeners.forEach(fn => {
       fn(batchUpdateEntries);

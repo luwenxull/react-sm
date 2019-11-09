@@ -18,15 +18,15 @@ export function isEmpty(val: any) {
   return val === undefined || val === null;
 }
 
-export function findClosetParentWithDom(element: Element): Element {
+export function findClosetParentDom(element: Element): HTMLElement | Text {
   if (element.parent) {
     if (element.parent.$dom) {
-      return element.parent;
+      return element.parent.$dom;
     } else {
-      return findClosetParentWithDom(element.parent);
+      return findClosetParentDom(element.parent);
     }
   } else {
-    return element;
+    return element.$dom as HTMLElement;
   }
 }
 

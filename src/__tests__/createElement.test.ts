@@ -4,7 +4,7 @@ test('create dom element', () => {
   const e = createElement(
     'div',
     {
-      name: 'test div'
+      name: 'test div',
     },
     'child of div'
   );
@@ -23,7 +23,7 @@ test('create function element', () => {
   const e = createElement(
     A,
     {
-      name: 'test A'
+      name: 'test A',
     },
     'a'
   );

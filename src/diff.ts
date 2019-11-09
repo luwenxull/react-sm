@@ -3,9 +3,14 @@ import {
   Child,
   FunctionElement,
   DOMElement,
-  ElementType
+  ElementType,
 } from './creatElement';
-import { isElement, isFunctionElement, isEmpty } from './util';
+import {
+  isElement,
+  isFunctionElement,
+  isEmpty,
+  findClosetParentDom,
+} from './util';
 import { INNER_TextComponent } from './render';
 import applyDiff from './applyDiff';
 
@@ -13,7 +18,7 @@ export enum DiffType {
   CREATE,
   DELETE,
   REPLACE,
-  UPDATE_TEXT
+  UPDATE_TEXT,
 }
 export interface Diff {
   type: DiffType;
@@ -23,7 +28,7 @@ export interface Diff {
 interface Pair {
   newVal: Child;
   oldVal: Child;
-  parent?: Element;
+  parentDOM: HTMLElement | Text;
 }
 
 export function resolveChildrenForDOMElement(
@@ -36,16 +41,16 @@ export function resolveChildrenForDOMElement(
   const diffs: Diff[] = [];
   const pendingPairs: Pair[] = [];
   const {
-    children: newChildren
+    children: newChildren,
     // childrenMapByKey: newChildrenMapByKey
   } = newElement;
   const {
     children: oldChildren,
-    childrenMapByKey: oldChildrenMapByKey
+    childrenMapByKey: oldChildrenMapByKey,
   } = oldElement;
   const childrenNumKey: Map<ElementType, number> = new Map();
   const childrendNeedKeep: Set<Element> = new Set();
-  (newChildren as Element[]).forEach(element => {
+  (<Element[]>newChildren).forEach(element => {
     const { key, type } = element;
     !childrenNumKey.has(type) && childrenNumKey.set(type, 0);
     const _key =
@@ -55,16 +60,21 @@ export function resolveChildrenForDOMElement(
     }
     const oldMap = oldChildrenMapByKey.get(type);
     if (oldMap && oldMap.has(_key)) {
-      // _diff(element, oldMap.get(_key), diffs, oldElement);
-      pendingPairs.push({ newVal: element, oldVal: oldMap.get(_key) });
-      childrendNeedKeep.add(oldMap.get(_key) as Element);
+      const oldVal = oldMap.get(_key) as Element;
+      pendingPairs.push({
+        newVal: element,
+        oldVal,
+        parentDOM: findClosetParentDom(element),
+      });
+      childrendNeedKeep.add(oldVal);
     } else {
       diffs.push({
         type: DiffType.CREATE,
         pair: {
           newVal: element,
-          oldVal: undefined
-        }
+          oldVal: undefined,
+          parentDOM: findClosetParentDom(element),
+        },
       });
     }
   });
@@ -74,14 +84,15 @@ export function resolveChildrenForDOMElement(
         type: DiffType.DELETE,
         pair: {
           oldVal: element,
-          newVal: undefined
-        }
+          newVal: undefined,
+          parentDOM: findClosetParentDom(element),
+        },
       });
     }
   });
   return {
     diffs,
-    pendingPairs
+    pendingPairs,
   };
 }
 
@@ -91,14 +102,14 @@ function diff(
   diffs: Diff[];
   pendingPairs: Pair[];
 } {
-  const { newVal, oldVal, parent } = pair;
+  const { newVal, oldVal, parentDOM } = pair;
   const diffs: Diff[] = [];
   const pendingPairs: Pair[] = [];
   if (isEmpty(newVal)) {
     if (!isEmpty(oldVal)) {
       diffs.push({
         type: DiffType.DELETE,
-        pair
+        pair,
       });
     } /* else oldchild is empty, nothing to do */
   } /* new child not empty */ else {
@@ -107,7 +118,7 @@ function diff(
         if (newVal.type !== oldVal.type) {
           diffs.push({
             type: DiffType.REPLACE,
-            pair
+            pair,
           });
         } else {
           // type相等
@@ -115,12 +126,9 @@ function diff(
             // so as oldElement
             const pair: Pair = {
               newVal: newVal.renderElement,
-              oldVal: (<FunctionElement>oldVal).renderElement
-              // parent: newVal
+              oldVal: (<FunctionElement>oldVal).renderElement,
+              parentDOM: findClosetParentDom(oldVal),
             };
-            if (newVal.type === INNER_TextComponent) {
-              pair.parent = newVal;
-            }
             pendingPairs.push(pair);
           } else {
             const results = resolveChildrenForDOMElement(
@@ -135,25 +143,25 @@ function diff(
       } else {
         diffs.push({
           type: DiffType.REPLACE,
-          pair
+          pair,
         });
       }
     } else if (isEmpty(oldVal)) {
       diffs.push({
         type: DiffType.CREATE,
-        pair
+        pair,
       });
     } /* primitive */ else {
       if (isElement(newVal)) {
         diffs.push({
           type: DiffType.REPLACE,
-          pair
+          pair,
         });
       } else {
         if (String(oldVal) !== String(newVal)) {
           diffs.push({
             type: DiffType.UPDATE_TEXT,
-            pair
+            pair,
           });
         }
       }
@@ -161,7 +169,7 @@ function diff(
   }
   return {
     diffs,
-    pendingPairs
+    pendingPairs,
   };
 }
 
@@ -170,17 +178,15 @@ export default function requestDiffHandler(
   oldVal: FunctionElement,
   inspector?: (diffs: Diff[], pairs: Pair[]) => void
 ): () => void {
-  const entryPair = [{ newVal, oldVal }];
-  // let diffs:Diff[] = []
-  // let pendingPairs: Pair[] = []
+  const entryPair = [
+    { newVal, oldVal, parentDOM: findClosetParentDom(oldVal) },
+  ];
   function handleDiffPair(pairs: Pair[]) {
     pairs.forEach(pair => {
       let { diffs, pendingPairs } = diff(pair);
-      inspector && inspector(diffs, pairs);
-      applyDiff(diffs);
-      if (pendingPairs.length) {
-        handleDiffPair(pendingPairs);
-      }
+      inspector && inspector(diffs, pendingPairs);
+      diffs.length && applyDiff(diffs);
+      pendingPairs.length && handleDiffPair(pendingPairs);
     });
   }
 

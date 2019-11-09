@@ -1,42 +1,87 @@
-import diff, { move, DiffType, resolveChildrenForDOMElement } from '../diff';
+import requestsDiffHandler, {
+  DiffType,
+  resolveChildrenForDOMElement,
+  Diff,
+} from '../diff';
 import createElement, {
   FunctionComponent,
-  FunctionElement
+  FunctionElement,
 } from '../creatElement';
 import render, { INNER_TextComponent } from '../render';
 
-test('diff: reconcile', () => {
-  const a = createElement('div', undefined, ['a']);
-  const a1 = createElement('div', undefined, ['a', 'a1']);
-  const a2 = createElement('div', undefined, ['a1', undefined]);
-  render(a);
-  render(a1);
-  render(a2);
-  const results = resolveChildrenForDOMElement(a1, a);
-  expect(results.length).toBe(1);
-  expect(results[0].type).toBe(DiffType.CREATE);
-  const newChild = results[0].newChild as FunctionElement;
-  expect(newChild).not.toBeUndefined();
-  expect(newChild.type).toBe(INNER_TextComponent);
-  expect(newChild.renderElement).toBe('a1');
-  const results2 = resolveChildrenForDOMElement(a2, a1);
-  expect(results2.length).toBe(2);
-  expect(results2[0].type).toBe(DiffType.UPDATE_TEXT);
-  expect(results2[1].type).toBe(DiffType.DELETE);
-  expect(results2[1].parent).toBe(a1);
-});
+jest.mock('../applyDiff');
 
-test('diff: ', () => {
+test('diff: update text', () => {
   let A: FunctionComponent<{ text: string }> = function(props) {
     return props.text;
   };
-  const a = createElement(A, { text: 'a' });
   const a1 = createElement(A, { text: 'a1' });
-  const results = diff(render(a1), render(a));
-  expect(results.length).toBe(1);
-  const diff0 = results[0];
-  expect(diff0.type).toBe(DiffType.UPDATE_TEXT);
+  const a2 = createElement(A, { text: 'a2' });
+  render(a1);
+  render(a2);
+  const inspector = jest.fn();
+  requestsDiffHandler(a2, a1, inspector)();
+  expect(inspector.mock.calls.length).toBe(3);
+  const call2 = inspector.mock.calls[2];
+  const diffs: Diff[] = call2[0];
+  expect(diffs.length).toBe(1);
+  const diff = diffs[0];
+  expect(diff.type).toBe(DiffType.UPDATE_TEXT);
+  expect(diff.pair.newVal).toBe('a2');
 });
+
+test('diff: delete and create', () => {
+  let A: FunctionComponent<{ text: any }> = function(props) {
+    return props.text;
+  };
+  const a1 = createElement(A, { text: 'a' });
+  const a2 = createElement(A, { text: undefined });
+  render(a1);
+  render(a2);
+  function test_delete() {
+    const inspector = jest.fn();
+    requestsDiffHandler(a2, a1, inspector)();
+    expect(inspector.mock.calls.length).toBe(2);
+    const call1 = inspector.mock.calls[1];
+    const diffs: Diff[] = call1[0];
+    expect(diffs.length).toBe(1);
+    const diff = diffs[0];
+    expect(diff.type).toBe(DiffType.DELETE);
+  }
+  function test_create() {
+    const inspector = jest.fn();
+    requestsDiffHandler(a1, a2, inspector)();
+    expect(inspector.mock.calls.length).toBe(2);
+    const call1 = inspector.mock.calls[1];
+    const diffs: Diff[] = call1[0];
+    expect(diffs.length).toBe(1);
+    const diff = diffs[0];
+    expect(diff.type).toBe(DiffType.CREATE);
+  }
+  test_delete();
+  test_create();
+});
+
+// test('diff: reconcile', () => {
+//   const a = createElement('div', undefined, ['a']);
+//   const a1 = createElement('div', undefined, ['a', 'a1']);
+//   const a2 = createElement('div', undefined, ['a1', undefined]);
+//   render(a);
+//   render(a1);
+//   render(a2);
+//   const results = resolveChildrenForDOMElement(a1, a);
+//   expect(results.length).toBe(1);
+//   expect(results[0].type).toBe(DiffType.CREATE);
+//   const newChild = results[0].newChild as FunctionElement;
+//   expect(newChild).not.toBeUndefined();
+//   expect(newChild.type).toBe(INNER_TextComponent);
+//   expect(newChild.renderElement).toBe('a1');
+//   const results2 = resolveChildrenForDOMElement(a2, a1);
+//   expect(results2.length).toBe(2);
+//   expect(results2[0].type).toBe(DiffType.UPDATE_TEXT);
+//   expect(results2[1].type).toBe(DiffType.DELETE);
+//   expect(results2[1].parent).toBe(a1);
+// });
 
 // test('diff', () => {
 //   let A: FunctionComponent<{ text: string }> = function(props) {

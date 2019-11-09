@@ -2,7 +2,7 @@ import {
   Element,
   Child,
   FunctionComponent,
-  FunctionElement
+  FunctionElement,
 } from './creatElement';
 import { isElement, isFunctionElement, isEmpty } from './util';
 import render, { INNER_TextComponent } from './render';
@@ -38,7 +38,6 @@ function _mount(element: Element, parent: DOM) {
       element.$dom = dom as HTMLElement;
     }
     element.children.forEach(child => {
-      // if (child)
       append(child, dom);
     });
     // if (element.type === 'fragment') {

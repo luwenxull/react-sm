@@ -3,7 +3,7 @@ import createElement, {
   FunctionComponent,
   FunctionElement,
   DOMElement,
-  Element
+  Element,
 } from '../creatElement';
 import { useState } from '../useState';
 import { onBatchUpdated } from '../batchUpdate';
@@ -15,6 +15,7 @@ test('render: simple', () => {
   const a = createElement(A, {});
   render(a);
   expect(a.renderElement).toBeUndefined();
+
   let B: FunctionComponent = function() {
     return 'b';
   };
@@ -23,6 +24,7 @@ test('render: simple', () => {
   const text = b.renderElement as FunctionElement;
   expect(text.type).toBe(INNER_TextComponent);
   expect(text.renderElement).toBe('b');
+
   const c = createElement('div', undefined, [undefined, '1']);
   render(c);
   expect(c.children.length).toBe(1);
@@ -38,7 +40,7 @@ test('render: hierachy', () => {
     let children = [
       createElement(A, { text: 'a1' }),
       createElement(A, { text: 'a2', key: 'a2' }),
-      createElement(A, { text: 'a3' })
+      createElement(A, { text: 'a3' }),
     ];
     if (reverse) {
       children = children.reverse();

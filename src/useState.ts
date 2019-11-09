@@ -24,6 +24,6 @@ export function useState<T>(initialValue: T): [T, SetStateByUser<T>] {
     value,
     (newVal: T) => {
       _innerSetState(_innerIndex, newVal);
-    }
+    },
   ];
 }

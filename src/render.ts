@@ -4,7 +4,7 @@ import createElement, {
   DOMElement,
   FunctionComponent,
   FunctionElement,
-  ElementType
+  ElementType,
 } from './creatElement';
 import { setStates } from './useState';
 import { isFunctionElement, isElement, isEmpty } from './util';

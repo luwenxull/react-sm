@@ -6,7 +6,7 @@ interface Logger {
 }
 
 const logger: Logger = {
-  funtionComponentCallStack: []
+  funtionComponentCallStack: [],
 };
 
 if (!isProduction && typeof window === 'object') {

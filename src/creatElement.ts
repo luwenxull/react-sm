@@ -69,7 +69,7 @@ export default function createElement<T extends ElementType>(
       props,
       children: isEmpty(children) ? [] : ([] as Child[]).concat(children),
       _isElement: true,
-      childrenMapByKey: new Map()
+      childrenMapByKey: new Map(),
     } as DOMElement<string>;
   } else {
     element = {
@@ -77,7 +77,7 @@ export default function createElement<T extends ElementType>(
       states: [],
       props,
       children,
-      _isElement: true
+      _isElement: true,
     } as FunctionElement;
   }
   if (
