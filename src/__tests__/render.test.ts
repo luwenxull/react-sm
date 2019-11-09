@@ -1,9 +1,10 @@
-import render, { INNER_TextComponent } from '../render';
+import render from '../render';
 import createElement, {
   FunctionComponent,
   FunctionElement,
   DOMElement,
   Element,
+  INNER_TextComponent,
 } from '../creatElement';
 import { useState } from '../useState';
 import { onBatchUpdated } from '../batchUpdate';

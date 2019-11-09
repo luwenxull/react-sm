@@ -5,9 +5,8 @@ import requestsDiffHandler, {
 } from '../diff';
 import createElement, {
   FunctionComponent,
-  FunctionElement,
 } from '../creatElement';
-import render, { INNER_TextComponent } from '../render';
+import render from '../render';
 
 jest.mock('../applyDiff');
 

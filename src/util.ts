@@ -1,4 +1,4 @@
-import { FunctionElement, Element, Child } from './creatElement';
+import { FunctionElement, Element, Child, DOMType } from './creatElement';
 
 declare const process: any;
 
@@ -30,10 +30,14 @@ export function findClosetParentDom(element: Element): HTMLElement | Text {
   }
 }
 
-export function findRelatedDom(element: Element) {
+export function findDeeperdDom(element: Element) {
+  let results: DOMType[] = []
   if (element.$dom) {
     return element.$dom;
   } else {
+    if (isFunctionElement(element)) {
+
+    }
   }
   // if ()
 }

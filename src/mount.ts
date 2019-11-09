@@ -1,11 +1,11 @@
 import {
   Element,
   Child,
-  FunctionComponent,
   FunctionElement,
+  INNER_TextComponent,
 } from './creatElement';
-import { isElement, isFunctionElement, isEmpty } from './util';
-import render, { INNER_TextComponent } from './render';
+import { isElement, isFunctionElement } from './util';
+import render from './render';
 
 type DOM = HTMLElement | DocumentFragment;
 
@@ -15,17 +15,15 @@ function append(element: Child, parent: DOM) {
       const { renderElement } = element as FunctionElement<
         typeof INNER_TextComponent
       >;
-      // if (!isEmpty(renderElement)) {
       element.$dom = document.createTextNode(String(renderElement));
       parent.appendChild(element.$dom);
-      // }
     } else {
       _mount(element, parent);
     }
   }
 }
 
-function _mount(element: Element, parent: DOM) {
+export function _mount(element: Element, parent: DOM) {
   if (isFunctionElement(element)) {
     const { renderElement } = element;
     append(renderElement, parent);

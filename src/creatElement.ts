@@ -17,13 +17,14 @@ export type FunctionComponent<T extends UserProps = any> = (
 ) => Child;
 
 export type ElementType = FunctionComponent | string;
+export type DOMType = HTMLElement | Text
 
 export interface BaseElement<T extends ElementType> {
   type: T;
   parent?: Element<any>;
   depth?: number;
   key?: string;
-  $dom?: HTMLElement | Text;
+  $dom?: DOMType;
   _isElement: true;
 }
 
@@ -39,6 +40,15 @@ export interface DOMElement<T extends string = any> extends BaseElement<T> {
   props?: Props;
   children: Child[];
   childrenMapByKey: Map<ElementType, Map<string | number, Element>>;
+}
+
+export const INNER_TextComponent: FunctionComponent = function (props) {
+  return props.children as Child;
+};
+
+export interface TextElement extends DOMElement {
+  $dom?: Text,
+  type: typeof INNER_TextComponent,
 }
 
 export type Element<T extends ElementType = any> = T extends string

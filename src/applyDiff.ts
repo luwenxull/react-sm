@@ -1,23 +1,26 @@
 import { Diff, DiffType } from './diff';
 import { findClosetParentDom } from './util';
 import { Element, FunctionElement } from './creatElement';
+import { _mount } from './mount';
 export default function applyDiff(diffs: Diff[]) {
   diffs.forEach(diff => {
     switch (diff.type) {
       case DiffType.UPDATE_TEXT: {
-        const parent = diff.pair.parentDOM as FunctionElement;
-        (parent.$dom as Text).nodeValue = String(diff.pair.newVal);
+        const parent = diff.pair.parentDOM as Text;
+        parent.nodeValue = String(diff.pair.newVal);
       }
       case DiffType.CREATE: {
         const {
-          pair: { newVal },
+          pair: { newVal, parentDOM },
         } = diff;
+        _mount(newVal as Element, parentDOM as HTMLElement)
         break;
       }
       case DiffType.DELETE: {
-        // const parent = findClosetParentWithDom(diff.oldChild as Element);
-        // const dom = parent.$dom as HTMLElement;
-        // dom.removeChild
+        const {
+          pair: { oldVal, parentDOM },
+        } = diff;
+        // parentDOM.removeChild
         break;
       }
       case DiffType.REPLACE: {

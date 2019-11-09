@@ -18,9 +18,9 @@ test('find closet parent with dom', () => {
   };
   let c = createElement(C, undefined);
   mount(c, document.createElement('div'));
-  const b = c.renderElement as FunctionElement<FunctionComponent>;
+  const b = c.renderElement as FunctionElement;
   const div = b.renderElement as DOMElement;
-  const a = div.children[0];
+  const a = div.children[0] as FunctionElement;
   expect(c.parent).toBeUndefined();
   expect(findClosetParentDom(a)).toBe(div);
   expect(findClosetParentDom(b)).toBe(c);

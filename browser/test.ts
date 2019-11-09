@@ -13,6 +13,8 @@ let Footer: FunctionComponent<{ text: string }> = function (props) {
 }
 
 let _setDate: any
+let _setFooter: any
+let _showFooter = false
 
 let Time: FunctionComponent = function() {
   const [date, setDate] = useState(new Date().toString())
@@ -21,12 +23,13 @@ let Time: FunctionComponent = function() {
 }
 
 let App: FunctionComponent = function (props) {
-  const [, _setApp] = useState('')
+  const [showFooter, setFooter] = useState(_showFooter)
+  _setFooter = setFooter
   return createElement('fragment', {}, [
     // createElement(Header, { text: 'this is header' }),
     // createElement(Header, { text: 'this is header2' }),
     createElement(Time, {}),
-    // createElement(Footer, { text: 'this is footer' }),
+    showFooter ? createElement(Footer, { text: 'this is footer' }) : undefined,
   ])
 }
 
@@ -36,18 +39,11 @@ mount(app, document.getElementById('app') as any);
 
 (window as any).__react_sm_debugger = {
   setDate() {
-    debugger
     _setDate(new Date().toString())
+  },
+  toggleFooter() {
+    _setFooter(!_showFooter)
   }
 }
 
 console.log(app)
-
-const a = createElement('div', undefined, ['a']);
-const a1 = createElement('div', undefined, ['a', 'a1']);
-const a2 = createElement('div', undefined, ['a1', undefined]);
-render(a);
-render(a1);
-render(a2);
-
-resolveChildrenForDOMElement(a2, a1)

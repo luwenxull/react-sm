@@ -1,10 +1,9 @@
 import createElement, {
   Element,
-  Child,
   DOMElement,
-  FunctionComponent,
   FunctionElement,
   ElementType,
+  INNER_TextComponent,
 } from './creatElement';
 import { setStates } from './useState';
 import { isFunctionElement, isElement, isEmpty } from './util';
@@ -22,10 +21,6 @@ function reuse(newElement: Element, oldElement: Element) {
     newElement.$dom = oldElement.$dom;
   }
 }
-
-export const INNER_TextComponent: FunctionComponent = function(props) {
-  return props.children as Child;
-};
 
 function renderFunctionElement(element: FunctionElement): FunctionElement {
   const { states, props, type } = element;

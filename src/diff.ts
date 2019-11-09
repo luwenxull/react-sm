@@ -4,6 +4,7 @@ import {
   FunctionElement,
   DOMElement,
   ElementType,
+  INNER_TextComponent,
 } from './creatElement';
 import {
   isElement,
@@ -11,7 +12,6 @@ import {
   isEmpty,
   findClosetParentDom,
 } from './util';
-import { INNER_TextComponent } from './render';
 import applyDiff from './applyDiff';
 
 export enum DiffType {
@@ -127,7 +127,7 @@ function diff(
             const pair: Pair = {
               newVal: newVal.renderElement,
               oldVal: (<FunctionElement>oldVal).renderElement,
-              parentDOM: findClosetParentDom(oldVal),
+              parentDOM: newVal.type === INNER_TextComponent ? newVal.$dom as Text : parentDOM,
             };
             pendingPairs.push(pair);
           } else {
