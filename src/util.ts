@@ -1,17 +1,30 @@
-import { FunctionElement, Element, Child, DOMType } from './creatElement';
+import {
+  ComponentElement,
+  Element,
+  Child,
+  Primitive,
+  TextElement,
+  TextComponent,
+} from './creatElement';
 
 declare const process: any;
 
-export function isElement(element: Child): element is Element {
+export function isElement(element: Element | Primitive): element is Element {
   return typeof element === 'object' && element !== null && element._isElement;
 }
 
-export function isFunctionElement(element?: Child): element is FunctionElement {
+export function isComponentElement(
+  element: Element
+): element is ComponentElement | TextElement {
   return (
     typeof element === 'object' &&
     element !== null &&
     typeof element.type === 'function'
   );
+}
+
+export function isTextElement(element: Element): element is TextElement {
+  return element.type === TextComponent;
 }
 
 export function isEmpty(val: any) {
@@ -31,12 +44,11 @@ export function findClosetParentDom(element: Element): HTMLElement | Text {
 }
 
 export function findDeeperdDom(element: Element) {
-  let results: DOMType[] = []
+  // let results: DOMType[] = [];
   if (element.$dom) {
     return element.$dom;
   } else {
-    if (isFunctionElement(element)) {
-
+    if (isComponentElement(element)) {
     }
   }
   // if ()

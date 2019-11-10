@@ -3,15 +3,13 @@ import requestsDiffHandler, {
   resolveChildrenForDOMElement,
   Diff,
 } from '../diff';
-import createElement, {
-  FunctionComponent,
-} from '../creatElement';
+import createElement, { Component } from '../creatElement';
 import render from '../render';
 
 jest.mock('../applyDiff');
 
 test('diff: update text', () => {
-  let A: FunctionComponent<{ text: string }> = function(props) {
+  let A: Component<{ text: string }> = function(props) {
     return props.text;
   };
   const a1 = createElement(A, { text: 'a1' });
@@ -30,7 +28,7 @@ test('diff: update text', () => {
 });
 
 test('diff: delete and create', () => {
-  let A: FunctionComponent<{ text: any }> = function(props) {
+  let A: Component<{ text: any }> = function(props) {
     return props.text;
   };
   const a1 = createElement(A, { text: 'a' });

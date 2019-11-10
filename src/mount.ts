@@ -1,20 +1,19 @@
 import {
   Element,
   Child,
-  FunctionElement,
-  INNER_TextComponent,
+  ComponentElement,
+  TextComponent,
+  Primitive,
 } from './creatElement';
-import { isElement, isFunctionElement } from './util';
+import { isElement, isComponentElement, isTextElement } from './util';
 import render from './render';
 
 type DOM = HTMLElement | DocumentFragment;
 
-function append(element: Child, parent: DOM) {
+function append(element: Element | Primitive, parent: DOM) {
   if (isElement(element)) {
-    if (element.type === INNER_TextComponent) {
-      const { renderElement } = element as FunctionElement<
-        typeof INNER_TextComponent
-      >;
+    if (isTextElement(element)) {
+      const { renderElement } = element;
       element.$dom = document.createTextNode(String(renderElement));
       parent.appendChild(element.$dom);
     } else {
@@ -24,7 +23,7 @@ function append(element: Child, parent: DOM) {
 }
 
 export function _mount(element: Element, parent: DOM) {
-  if (isFunctionElement(element)) {
+  if (isComponentElement(element)) {
     const { renderElement } = element;
     append(renderElement, parent);
   } else {
@@ -47,7 +46,7 @@ export function _mount(element: Element, parent: DOM) {
 
 export default function mount(element: Element, parent: HTMLElement) {
   render(element);
-  if (isFunctionElement(element)) {
+  if (isComponentElement(element)) {
     element.$dom = parent;
   }
   _mount(element, parent);

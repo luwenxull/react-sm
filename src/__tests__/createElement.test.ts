@@ -1,4 +1,4 @@
-import createElement from '../creatElement';
+import createElement, { TextComponent } from '../creatElement';
 
 test('create dom element', () => {
   const e = createElement(
@@ -10,7 +10,8 @@ test('create dom element', () => {
   );
   expect(e.type).toBe('div');
   expect(e.props).toEqual({ name: 'test div' });
-  expect(e.children).toEqual(['child of div']);
+  expect(e.children.length).toBe(1);
+  expect(e.children[0].type).toBe(TextComponent);
   expect(e.key).toBeUndefined();
   const e2 = createElement('div', { key: '1' });
   expect(e2.key).toBe('1');

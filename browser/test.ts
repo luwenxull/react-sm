@@ -1,14 +1,14 @@
-import createElement, { FunctionComponent, DOMElement } from '../src/creatElement';
+import createElement, { Component, DOMElement } from '../src/creatElement';
 import mount from '../src/mount';
 import { useState } from '../src/useState';
 import render from '../src/render';
 import { resolveChildrenForDOMElement } from '../src/diff';
 
-let Header: FunctionComponent<{ text: string }> = function (props) {
+let Header: Component<{ text: string }> = function (props) {
   return createElement('div', undefined, props.text)
 }
 
-let Footer: FunctionComponent<{ text: string }> = function (props) {
+let Footer: Component<{ text: string }> = function (props) {
   return createElement('div', undefined, props.text)
 }
 
@@ -16,13 +16,13 @@ let _setDate: any
 let _setFooter: any
 let _showFooter = false
 
-let Time: FunctionComponent = function() {
+let Time: Component = function() {
   const [date, setDate] = useState(new Date().toString())
   _setDate = setDate
   return date
 }
 
-let App: FunctionComponent = function (props) {
+let App: Component = function (props) {
   const [showFooter, setFooter] = useState(_showFooter)
   _setFooter = setFooter
   return createElement('fragment', {}, [

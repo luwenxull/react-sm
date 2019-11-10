@@ -1,29 +1,29 @@
 import render from '../render';
 import createElement, {
-  FunctionComponent,
-  FunctionElement,
+  Component,
+  ComponentElement,
   DOMElement,
   Element,
-  INNER_TextComponent,
+  TextComponent,
 } from '../creatElement';
 import { useState } from '../useState';
 import { onBatchUpdated } from '../batchUpdate';
 
 test('render: simple', () => {
-  let A: FunctionComponent = function() {
+  let A: Component = function() {
     return undefined;
   };
   const a = createElement(A, {});
   render(a);
   expect(a.renderElement).toBeUndefined();
 
-  let B: FunctionComponent = function() {
+  let B: Component = function() {
     return 'b';
   };
   const b = createElement(B, {});
   render(b);
-  const text = b.renderElement as FunctionElement;
-  expect(text.type).toBe(INNER_TextComponent);
+  const text = b.renderElement as ComponentElement;
+  expect(text.type).toBe(TextComponent);
   expect(text.renderElement).toBe('b');
 
   const c = createElement('div', undefined, [undefined, '1']);
@@ -32,11 +32,11 @@ test('render: simple', () => {
 });
 
 test('render: hierachy', () => {
-  let A: FunctionComponent<{ text: string }> = function(props) {
+  let A: Component<{ text: string }> = function(props) {
     const [i] = useState(0);
     return `${props.text}-${i}`;
   };
-  let B: FunctionComponent = function() {
+  let B: Component = function() {
     const [reverse] = useState(false);
     let children = [
       createElement(A, { text: 'a1' }),
@@ -58,7 +58,7 @@ test('render: hierachy', () => {
   expect(div.parent).toBe(b);
   const children = div.children;
   expect(children.length).toBe(3);
-  const [a1, a2, a3] = children as FunctionElement[];
+  const [a1, a2, a3] = children as ComponentElement[];
   expect(a1.key).toBeUndefined();
   expect(a2.key).toBe('a2');
   expect(a3.key).toBeUndefined();
@@ -66,8 +66,8 @@ test('render: hierachy', () => {
   expect((div.childrenMapByKey.get(A) as Map<any, any>).get('a2')).toBe(a2);
   expect((div.childrenMapByKey.get(A) as Map<any, any>).get(1)).toBe(a3);
   // const t1 = a1.renderElement as FunctionElement
-  const t2 = a2.renderElement as FunctionElement;
-  expect(t2.type).toBe(INNER_TextComponent);
+  const t2 = a2.renderElement as ComponentElement;
+  expect(t2.type).toBe(TextComponent);
   expect(t2.renderElement).toBe('a2-0');
   const b2 = Object.assign({}, b);
   a1.states = [1];
@@ -76,10 +76,10 @@ test('render: hierachy', () => {
   b2.states = [true];
   render(b2);
   const [a11, a12, a13] = (b2.renderElement as DOMElement)
-    .children as FunctionElement[];
-  const t11 = a11.renderElement as FunctionElement;
-  const t12 = a12.renderElement as FunctionElement;
-  const t13 = a13.renderElement as FunctionElement;
+    .children as ComponentElement[];
+  const t11 = a11.renderElement as ComponentElement;
+  const t12 = a12.renderElement as ComponentElement;
+  const t13 = a13.renderElement as ComponentElement;
   expect(t11.renderElement).toBe('a3-1');
   expect(t12.renderElement).toBe('a2-2');
   expect(t13.renderElement).toBe('a1-3');

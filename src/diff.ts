@@ -1,14 +1,16 @@
 import {
   Element,
   Child,
-  FunctionElement,
+  ComponentElement,
   DOMElement,
   ElementType,
-  INNER_TextComponent,
+  TextComponent,
+  Primitive,
+  TextElement,
 } from './creatElement';
 import {
   isElement,
-  isFunctionElement,
+  isComponentElement,
   isEmpty,
   findClosetParentDom,
 } from './util';
@@ -26,8 +28,8 @@ export interface Diff {
 }
 
 interface Pair {
-  newVal: Child;
-  oldVal: Child;
+  newVal: Element | Primitive;
+  oldVal: Element | Primitive;
   parentDOM: HTMLElement | Text;
 }
 
@@ -122,12 +124,15 @@ function diff(
           });
         } else {
           // type相等
-          if (isFunctionElement(newVal)) {
+          if (isComponentElement(newVal)) {
             // so as oldElement
             const pair: Pair = {
               newVal: newVal.renderElement,
-              oldVal: (<FunctionElement>oldVal).renderElement,
-              parentDOM: newVal.type === INNER_TextComponent ? newVal.$dom as Text : parentDOM,
+              oldVal: (<ComponentElement>oldVal).renderElement,
+              parentDOM:
+                newVal.type === TextComponent
+                  ? ((<TextElement>newVal).$dom as Text)
+                  : parentDOM,
             };
             pendingPairs.push(pair);
           } else {
@@ -174,8 +179,8 @@ function diff(
 }
 
 export default function requestDiffHandler(
-  newVal: FunctionElement,
-  oldVal: FunctionElement,
+  newVal: ComponentElement,
+  oldVal: ComponentElement,
   inspector?: (diffs: Diff[], pairs: Pair[]) => void
 ): () => void {
   const entryPair = [

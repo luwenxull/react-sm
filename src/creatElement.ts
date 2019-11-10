@@ -1,67 +1,71 @@
-import { isEmpty } from './util';
+import { isEmpty, isElement } from './util';
 
 export type Props = {
   [props: string]: any;
 };
 
-export type FunctionProps = {
-  children?: Child | Child[];
+export type InnerFunctionCompProps = {
+  children?: Children;
 };
 
 export type Children = Child | Child[];
 
-export type UserProps = Props;
-
-export type FunctionComponent<T extends UserProps = any> = (
-  props: T & FunctionProps
+export type Component<T extends Props = any> = (
+  props: T & InnerFunctionCompProps
 ) => Child;
 
-export type ElementType = FunctionComponent | string;
-export type DOMType = HTMLElement | Text
+export type ElementType = Component | string;
+// export type DOMType = HTMLElement | Text
 
 export interface BaseElement<T extends ElementType> {
   type: T;
-  parent?: Element<any>;
+  parent?: ComponentElement | DOMElement;
   depth?: number;
   key?: string;
-  $dom?: DOMType;
+  // $dom?: HTMLElement | Text;
   _isElement: true;
 }
 
-export interface FunctionElement<T extends FunctionComponent = any>
+export interface _ComponentElement<T extends Component = Component>
   extends BaseElement<T> {
+  _typeName: string;
   states: any[];
-  props: T extends FunctionComponent<infer U> ? U : never;
-  renderElement?: ReturnType<T>;
+  props: T extends Component<infer U> ? U : never;
+  renderElement?: Element;
   children?: Children;
+}
+
+export interface ComponentElement<T extends Component = Component>
+  extends _ComponentElement<T> {
+  $dom?: HTMLElement;
+}
+
+export interface TextElement extends _ComponentElement<typeof TextComponent> {
+  $dom?: Text;
+  renderElement?: any;
 }
 
 export interface DOMElement<T extends string = any> extends BaseElement<T> {
   props?: Props;
-  children: Child[];
+  children: Element[];
   childrenMapByKey: Map<ElementType, Map<string | number, Element>>;
+  $dom?: HTMLElement;
 }
 
-export const INNER_TextComponent: FunctionComponent = function (props) {
+export const TextComponent: Component = function(props) {
   return props.children as Child;
 };
 
-export interface TextElement extends DOMElement {
-  $dom?: Text,
-  type: typeof INNER_TextComponent,
-}
-
-export type Element<T extends ElementType = any> = T extends string
-  ? DOMElement<T>
-  : (T extends FunctionComponent ? FunctionElement<T> : never);
+export type Element = ComponentElement | TextElement | DOMElement;
 export type Primitive = string | number | null | undefined;
-export type Child = Element | Primitive;
 
-export default function createElement<T extends FunctionComponent>(
+export type Child = ComponentElement | DOMElement | Primitive;
+
+export default function createElement<T extends Component>(
   type: T,
-  props: T extends FunctionComponent<infer U> ? (U & { key?: string }) : never,
+  props: T extends Component<infer U> ? U & { key?: string } : never,
   children?: Children
-): FunctionElement<T>;
+): _ComponentElement<T>;
 export default function createElement<T extends string>(
   type: T,
   props?: Props,
@@ -71,13 +75,20 @@ export default function createElement<T extends ElementType>(
   type: T,
   props?: any,
   children?: Child | Child[]
-): Element<T> {
+): Element {
   let element: any;
   if (typeof type === 'string') {
     element = {
       type,
       props,
-      children: isEmpty(children) ? [] : ([] as Child[]).concat(children),
+      children: ([] as Child[])
+        .concat(children)
+        .filter(child => !isEmpty(child))
+        .map(child => {
+          return isElement(child)
+            ? child
+            : createElement(TextComponent, {}, child);
+        }),
       _isElement: true,
       childrenMapByKey: new Map(),
     } as DOMElement<string>;
@@ -88,7 +99,8 @@ export default function createElement<T extends ElementType>(
       props,
       children,
       _isElement: true,
-    } as FunctionElement;
+      _typeName: (<Function>type).name,
+    } as ComponentElement;
   }
   if (
     typeof props === 'object' &&
