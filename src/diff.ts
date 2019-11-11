@@ -10,7 +10,7 @@ import {
 } from './creatElement';
 import {
   isElement,
-  isComponentElement,
+  is_ComponentElement,
   isEmpty,
   findClosetParentDom,
 } from './util';
@@ -124,7 +124,7 @@ function diff(
           });
         } else {
           // type相等
-          if (isComponentElement(newVal)) {
+          if (is_ComponentElement(newVal)) {
             // so as oldElement
             const pair: Pair = {
               newVal: newVal.renderElement,

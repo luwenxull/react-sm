@@ -5,15 +5,16 @@ import createElement, {
   ElementType,
   TextComponent,
   _ComponentElement,
+  createTextElement,
 } from './creatElement';
 import { setStates } from './useState';
-import { isComponentElement, isElement, isEmpty } from './util';
+import { is_ComponentElement, isElement, isEmpty } from './util';
 import batchUpdate from './batchUpdate';
 import logger from './logger';
 import { isProduction } from './env';
 
 function reuse(newElement: Element, oldElement: Element) {
-  if (isComponentElement(newElement)) {
+  if (is_ComponentElement(newElement)) {
     newElement.states = (oldElement as ComponentElement).states;
   } else {
     newElement.childrenMapByKey = (oldElement as DOMElement).childrenMapByKey;
@@ -37,7 +38,7 @@ function renderComponentElement(element: _ComponentElement): _ComponentElement {
   );
   if (!isElement(renderElement)) {
     if (!isEmpty(renderElement) && type !== TextComponent) {
-      renderElement = createElement(TextComponent, {}, renderElement);
+      renderElement = createTextElement(renderElement) as any;
     }
   }
   if (isElement(renderElement)) {
@@ -92,7 +93,7 @@ export default function render(element: Element): Element {
   if (typeof element.depth !== 'number') {
     element.depth = 0; // root
   }
-  if (isComponentElement(element)) {
+  if (is_ComponentElement(element)) {
     renderComponentElement(element);
   } else {
     renderDOMElement(element);

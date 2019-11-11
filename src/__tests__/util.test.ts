@@ -22,7 +22,7 @@ test('find closet parent with dom', () => {
   const div = b.renderElement as DOMElement;
   const a = div.children[0] as ComponentElement;
   expect(c.parent).toBeUndefined();
-  // expect(findClosetParentDom(a)).toBe(div);
-  // expect(findClosetParentDom(b)).toBe(c);
-  // expect(findClosetParentDom(div)).toBe(c);
+  expect(findClosetParentDom(a)).toBe(div.$dom);
+  expect(findClosetParentDom(b)).toBe(c.$dom);
+  expect(findClosetParentDom(div)).toBe(c.$dom);
 });

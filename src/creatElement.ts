@@ -61,11 +61,24 @@ export type Primitive = string | number | null | undefined;
 
 export type Child = ComponentElement | DOMElement | Primitive;
 
+// export type Mounted<T extends Element> =
+
+export function createTextElement(children: any): TextElement {
+  return {
+    type: TextComponent,
+    props: {},
+    states: [],
+    children,
+    _typeName: TextComponent.name,
+    _isElement: true,
+  };
+}
+
 export default function createElement<T extends Component>(
   type: T,
   props: T extends Component<infer U> ? U & { key?: string } : never,
   children?: Children
-): _ComponentElement<T>;
+): ComponentElement<T>;
 export default function createElement<T extends string>(
   type: T,
   props?: Props,
@@ -85,9 +98,7 @@ export default function createElement<T extends ElementType>(
         .concat(children)
         .filter(child => !isEmpty(child))
         .map(child => {
-          return isElement(child)
-            ? child
-            : createElement(TextComponent, {}, child);
+          return isElement(child) ? child : createTextElement(child);
         }),
       _isElement: true,
       childrenMapByKey: new Map(),

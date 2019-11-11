@@ -5,7 +5,7 @@ import {
   TextComponent,
   Primitive,
 } from './creatElement';
-import { isElement, isComponentElement, isTextElement } from './util';
+import { isElement, is_ComponentElement, isTextElement } from './util';
 import render from './render';
 
 type DOM = HTMLElement | DocumentFragment;
@@ -23,7 +23,7 @@ function append(element: Element | Primitive, parent: DOM) {
 }
 
 export function _mount(element: Element, parent: DOM) {
-  if (isComponentElement(element)) {
+  if (is_ComponentElement(element)) {
     const { renderElement } = element;
     append(renderElement, parent);
   } else {
@@ -46,7 +46,7 @@ export function _mount(element: Element, parent: DOM) {
 
 export default function mount(element: Element, parent: HTMLElement) {
   render(element);
-  if (isComponentElement(element)) {
+  if (is_ComponentElement(element)) {
     element.$dom = parent;
   }
   _mount(element, parent);

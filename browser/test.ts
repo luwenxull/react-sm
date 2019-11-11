@@ -3,6 +3,7 @@ import mount from '../src/mount';
 import { useState } from '../src/useState';
 import render from '../src/render';
 import { resolveChildrenForDOMElement } from '../src/diff';
+import { findDeeperDom } from '../src/util';
 
 let Header: Component<{ text: string }> = function (props) {
   return createElement('div', undefined, props.text)
@@ -26,7 +27,7 @@ let App: Component = function (props) {
   const [showFooter, setFooter] = useState(_showFooter)
   _setFooter = setFooter
   return createElement('fragment', {}, [
-    // createElement(Header, { text: 'this is header' }),
+    createElement(Header, { text: 'this is header' }),
     // createElement(Header, { text: 'this is header2' }),
     createElement(Time, {}),
     showFooter ? createElement(Footer, { text: 'this is footer' }) : undefined,
@@ -47,3 +48,4 @@ mount(app, document.getElementById('app') as any);
 }
 
 console.log(app)
+console.log(findDeeperDom(app))
