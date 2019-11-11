@@ -7,10 +7,11 @@ import {
 } from './creatElement';
 import { isElement, is_ComponentElement, isTextElement } from './util';
 import render from './render';
+import bindEvents from './bindEvents';
 
 type DOM = HTMLElement | DocumentFragment;
 
-function append(element: Element | Primitive, parent: DOM) {
+function append(element: any, parent: DOM) {
   if (isElement(element)) {
     if (isTextElement(element)) {
       const { renderElement } = element;
@@ -33,6 +34,7 @@ export function _mount(element: Element, parent: DOM) {
     } else {
       dom = document.createElement(element.type);
       element.$dom = dom as HTMLElement;
+      element.props && bindEvents(element, element.props);
     }
     element.children.forEach(child => {
       append(child, dom);

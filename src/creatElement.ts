@@ -4,18 +4,15 @@ export type Props = {
   [props: string]: any;
 };
 
-export type InnerFunctionCompProps = {
-  children?: Children;
-};
-
 export type Children = Child | Child[];
 
-export type Component<T extends Props = any> = (
-  props: T & InnerFunctionCompProps
+export type Component<T extends Props = {}> = (
+  props: T & {
+    children?: Children;
+  }
 ) => Child;
 
-export type ElementType = Component | string;
-// export type DOMType = HTMLElement | Text
+export type ElementType = Component<any> | string;
 
 export interface BaseElement<T extends ElementType> {
   type: T;
@@ -26,16 +23,16 @@ export interface BaseElement<T extends ElementType> {
   _isElement: true;
 }
 
-export interface _ComponentElement<T extends Component = Component>
+export interface _ComponentElement<T extends Component<any> = Component<any>>
   extends BaseElement<T> {
   _typeName: string;
   states: any[];
-  props: T extends Component<infer U> ? U : never;
+  props?: T extends Component<infer U> ? U : never;
   renderElement?: Element;
   children?: Children;
 }
 
-export interface ComponentElement<T extends Component = Component>
+export interface ComponentElement<T extends Component<any> = Component<any>>
   extends _ComponentElement<T> {
   $dom?: HTMLElement;
 }
@@ -61,7 +58,19 @@ export type Primitive = string | number | null | undefined;
 
 export type Child = ComponentElement | DOMElement | Primitive;
 
-// export type Mounted<T extends Element> =
+export type Events =
+  | 'onClick'
+  | 'onMousemove'
+  | 'onMouseenter'
+  | 'onMouseleave'
+  | 'onChange';
+export type EventListener = {
+  [key in Events]?: (e: Event) => void;
+};
+
+// export type Mounted<T extends Element> = {
+//   [key in keyof T]:
+// }
 
 export function createTextElement(children: any): TextElement {
   return {
@@ -74,14 +83,16 @@ export function createTextElement(children: any): TextElement {
   };
 }
 
-export default function createElement<T extends Component>(
+export default function createElement<T extends Component<any>>(
   type: T,
-  props: T extends Component<infer U> ? U & { key?: string } : never,
+  props?: T extends Component<infer U>
+    ? U & { key?: string } & EventListener
+    : never,
   children?: Children
 ): ComponentElement<T>;
 export default function createElement<T extends string>(
   type: T,
-  props?: Props,
+  props?: Props & EventListener,
   children?: Children
 ): DOMElement<T>;
 export default function createElement<T extends ElementType>(

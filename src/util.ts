@@ -10,22 +10,18 @@ import {
 
 declare const process: any;
 
-export function isElement(element: Element | Primitive): element is Element {
+export function isElement(element: any): element is Element {
   return typeof element === 'object' && element !== null && element._isElement;
 }
 
 export function is_ComponentElement(
-  element: Element
+  element: any
 ): element is ComponentElement | TextElement {
-  return (
-    typeof element === 'object' &&
-    element !== null &&
-    typeof element.type === 'function'
-  );
+  return isElement(element) && typeof element.type === 'function';
 }
 
-export function isTextElement(element: Element): element is TextElement {
-  return element.type === TextComponent;
+export function isTextElement(element: any): element is TextElement {
+  return is_ComponentElement(element) && element.type === TextComponent;
 }
 
 export function isEmpty(val: any) {

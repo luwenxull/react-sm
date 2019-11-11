@@ -1,7 +1,6 @@
 import createElement, {
   Element,
   DOMElement,
-  ComponentElement,
   ElementType,
   TextComponent,
   _ComponentElement,
@@ -15,9 +14,10 @@ import { isProduction } from './env';
 
 function reuse(newElement: Element, oldElement: Element) {
   if (is_ComponentElement(newElement)) {
-    newElement.states = (oldElement as ComponentElement).states;
+    newElement.states = (<_ComponentElement>oldElement).states;
+    newElement.renderElement = (<_ComponentElement>oldElement).renderElement;
   } else {
-    newElement.childrenMapByKey = (oldElement as DOMElement).childrenMapByKey;
+    newElement.childrenMapByKey = (<DOMElement>oldElement).childrenMapByKey;
   }
   if (oldElement.$dom) {
     newElement.$dom = oldElement.$dom;

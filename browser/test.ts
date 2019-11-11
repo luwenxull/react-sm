@@ -6,46 +6,49 @@ import { resolveChildrenForDOMElement } from '../src/diff';
 import { findDeeperDom } from '../src/util';
 
 let Header: Component<{ text: string }> = function (props) {
-  return createElement('div', undefined, props.text)
+  return createElement('div', { onClick: console.log }, props.text)
 }
 
 let Footer: Component<{ text: string }> = function (props) {
   return createElement('div', undefined, props.text)
 }
 
-let _setDate: any
-let _setFooter: any
-let _showFooter = false
 
-let Time: Component = function() {
-  const [date, setDate] = useState(new Date().toString())
-  _setDate = setDate
-  return date
+let Time: Component<{ time: string }> = function (props) {
+  debugger
+  return props.time
+}
+
+let Wrapper: Component<any> = function(props: any) {
+  return createElement(Time, props)
+}
+
+let IndexLi: Component<{index: string}> = function(props) {
+  return createElement('li', {}, props.index)
 }
 
 let App: Component = function (props) {
-  const [showFooter, setFooter] = useState(_showFooter)
-  _setFooter = setFooter
-  return createElement('fragment', {}, [
-    createElement(Header, { text: 'this is header' }),
+  // const [showFooter, setFooter] = useState(_showFooter)
+  const [time, setTime] = useState(new Date().toString())
+  // _setFooter = setFooter
+  const s = new Array(100).fill(0).map((v, i) => createElement(IndexLi, {index: i + time}))
+  return createElement('ul', undefined, [
+    // createElement(Header, { text: 'this is header' }),
     // createElement(Header, { text: 'this is header2' }),
-    createElement(Time, {}),
-    showFooter ? createElement(Footer, { text: 'this is footer' }) : undefined,
+    // createElement(Wrapper, { time }),
+    ...s,
+    createElement('button', {
+      onClick: () => {
+        setTime(new Date().toString())
+      }
+    }, '重置时间')
+    // showFooter ? createElement(Footer, { text: 'this is footer' }) : undefined,
   ])
 }
 
-const app = createElement(App, {})
+const app = createElement(App, { onClick: console.log })
 
 mount(app, document.getElementById('app') as any);
-
-(window as any).__react_sm_debugger = {
-  setDate() {
-    _setDate(new Date().toString())
-  },
-  toggleFooter() {
-    _setFooter(!_showFooter)
-  }
-}
 
 console.log(app)
 console.log(findDeeperDom(app))
