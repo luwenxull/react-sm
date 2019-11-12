@@ -1,4 +1,5 @@
 import { isEmpty, isElement } from './util';
+import { Events } from './bindEvents';
 
 export type Props = {
   [props: string]: any;
@@ -57,14 +58,8 @@ export type Primitive = string | number | null | undefined;
 
 // export type Child = Exclude<Element | Primitive, TextElement>
 
-export type Events =
-  | 'onClick'
-  | 'onMousemove'
-  | 'onMouseenter'
-  | 'onMouseleave'
-  | 'onChange';
 export type EventListener = {
-  [key in Events]?: (e: Event) => void;
+  [key in Events]?: (e: Event, stop: () => void) => void;
 };
 
 // export type Mounted<T extends Element> = {

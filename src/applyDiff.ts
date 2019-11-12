@@ -1,6 +1,7 @@
 import { Diff, DiffType } from './diff';
-import { Element, FunctionElement } from './creatElement';
+import { Element } from './creatElement';
 import { _mount } from './mount';
+import { findDeeperDom } from './util';
 export default function applyDiff(diffs: Diff[]) {
   diffs.forEach(diff => {
     switch (diff.type) {
@@ -20,7 +21,9 @@ export default function applyDiff(diffs: Diff[]) {
         const {
           pair: { oldVal, parentDOM },
         } = diff;
-        // parentDOM.removeChild
+        findDeeperDom(oldVal as Element).forEach(dom => {
+          parentDOM.removeChild(dom);
+        });
         break;
       }
       case DiffType.REPLACE: {

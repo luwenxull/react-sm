@@ -2,6 +2,7 @@ import { Element } from './creatElement';
 import { isElement, is_FunctionElement, isTextElement } from './util';
 import render from './render';
 import bindEvents from './bindEvents';
+import handleProps from './handleProps';
 
 type DOM = HTMLElement | DocumentFragment;
 
@@ -28,7 +29,7 @@ export function _mount(element: Element, parent: DOM) {
     } else {
       dom = document.createElement(element.type);
       element.$dom = dom as HTMLElement;
-      element.props && bindEvents(element, element.props);
+      element.props && handleProps(element);
     }
     element.children.forEach(child => {
       appendTextNode(child, dom);

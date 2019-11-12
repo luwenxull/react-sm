@@ -10,7 +10,10 @@ const colorContext = createContext('red')
 
 let Header: Component<{ text: string }> = function (props) {
   return createElement(colorContext.Consumer, undefined, (v: string) => {
-    return createElement('div', { onClick: console.log }, props.text + v)
+    return createElement('div', { onClick: (e, stop) => {
+      console.log('不要点啦！！！')
+      stop()
+    } }, props.text + v)
   })
 }
 
@@ -20,7 +23,6 @@ let Footer: Component<{ text: string }> = function (props) {
 
 
 let Time: Component<{ time: string }> = function (props) {
-  debugger
   return props.time
 }
 
@@ -34,29 +36,42 @@ let IndexLi: Component<{index: string}> = function(props) {
 
 
 let App: Component = function (props) {
-  // const [showFooter, setFooter] = useState(_showFooter)
   const [time, setTime] = useState(new Date().toString())
-  // _setFooter = setFooter
-  const s = new Array(100).fill(0).map((v, i) => createElement(IndexLi, {index: i + time}))
+  const [color, setColor] = useState('green')
+  const [showFooter, setFooter] = useState(true)
+  let _s = showFooter
+  console.log(_s)
   return createElement('fragment', undefined, [
     createElement(
       colorContext.Provider,
-      {value: 'green'},
+      {value: color},
       createElement(Header, { text: 'this is header' })
     ),
-    // createElement(Header, { text: 'this is header2' }),
     createElement(Wrapper, { time }),
-    // ...s,
-    createElement('button', {
-      onClick: () => {
-        setTime(new Date().toString())
-      }
-    }, '重置时间')
-    // showFooter ? createElement(Footer, { text: 'this is footer' }) : undefined,
+    createElement('div', {
+      'data-name': 'actions'
+    } , [
+      createElement('button', {
+        onClick: () => {
+          setTime(new Date().toString())
+        }
+      }, '重置时间'),
+      createElement('button', {
+        onClick: () => {
+          setColor('purple')
+        }
+      }, '重置颜色'),
+      createElement('button', {
+        onClick: () => {
+          setFooter(!_s)
+        }
+      }, '切换页脚'),
+    ]),
+    _s ? createElement(Footer, { text: 'this is footer' }) : undefined,
   ])
 }
 
-const app = createElement(App, { onClick: console.log })
+const app = createElement(App, {onClick: console.log})
 
 mount(app, document.getElementById('app') as any);
 

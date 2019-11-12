@@ -1,8 +1,4 @@
-import createElement, {
-  Component,
-  FunctionElement,
-  Element,
-} from './creatElement';
+import { Component, Element } from './creatElement';
 import logger from './logger';
 import { getRenderingFunctionElement } from './rendering';
 
@@ -36,13 +32,6 @@ function findContextValue<T>(
 
 export default function createContext<T>(value: T): Context<T> {
   const Provider: Component<{ value?: T }> = function(props) {
-    if (props.hasOwnProperty('value')) {
-      getRenderingFunctionElement().props = {
-        value: props.value
-      };
-    } else {
-      getRenderingFunctionElement().props = {};
-    }
     if (props.children instanceof Array) {
       logger.warn(
         'Context Provider Received an array. If you need a list of elements, you can use "fragment"'

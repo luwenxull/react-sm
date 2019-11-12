@@ -32,6 +32,11 @@ interface Pair {
   parentDOM: HTMLElement | Text;
 }
 
+function diffDomProps(newElement: DOMElement, oldElement: DOMElement) {
+  console.log(newElement.props === oldElement.props);
+  console.log(oldElement.props);
+}
+
 export function resolveChildrenForDOMElement(
   newElement: DOMElement,
   oldElement: DOMElement
@@ -135,10 +140,10 @@ function diff(
             };
             pendingPairs.push(pair);
           } else {
-            const results = resolveChildrenForDOMElement(
-              newVal,
-              oldVal as DOMElement
-            );
+            diffDomProps(newVal, <DOMElement>oldVal);
+            const results = resolveChildrenForDOMElement(newVal, <DOMElement>(
+              oldVal
+            ));
             diffs.push(...results.diffs);
             pendingPairs.push(...results.pendingPairs);
             // todo sort
