@@ -3,19 +3,20 @@ import createElement, {
   DOMElement,
   ElementType,
   TextComponent,
-  _ComponentElement,
+  _FunctionElement,
   createTextElement,
 } from './creatElement';
 import { setStates } from './useState';
-import { is_ComponentElement, isElement, isEmpty } from './util';
+import { is_FunctionElement, isElement, isEmpty } from './util';
 import batchUpdate from './batchUpdate';
 import logger from './logger';
 import { isProduction } from './env';
+import { updateRenderingFunctionElement } from './rendering';
 
 function reuse(newElement: Element, oldElement: Element) {
-  if (is_ComponentElement(newElement)) {
-    newElement.states = (<_ComponentElement>oldElement).states;
-    newElement.renderElement = (<_ComponentElement>oldElement).renderElement;
+  if (is_FunctionElement(newElement)) {
+    newElement.states = (<_FunctionElement>oldElement).states;
+    newElement.renderElement = (<_FunctionElement>oldElement).renderElement;
   } else {
     newElement.childrenMapByKey = (<DOMElement>oldElement).childrenMapByKey;
   }
@@ -24,7 +25,7 @@ function reuse(newElement: Element, oldElement: Element) {
   }
 }
 
-function renderComponentElement(element: _ComponentElement): _ComponentElement {
+function renderComponentElement(element: _FunctionElement): _FunctionElement {
   const { states, props, type } = element;
   if (!isProduction) {
     logger.funtionComponentCallStack.push(type.name + '-' + element.depth);
@@ -33,12 +34,13 @@ function renderComponentElement(element: _ComponentElement): _ComponentElement {
     states[index] = value;
     batchUpdate(element);
   });
+  updateRenderingFunctionElement(element);
   let renderElement = type(
     Object.assign({}, props, { children: element.children })
   );
   if (!isElement(renderElement)) {
     if (!isEmpty(renderElement) && type !== TextComponent) {
-      renderElement = createTextElement(renderElement) as any;
+      renderElement = createTextElement(renderElement);
     }
   }
   if (isElement(renderElement)) {
@@ -93,7 +95,7 @@ export default function render(element: Element): Element {
   if (typeof element.depth !== 'number') {
     element.depth = 0; // root
   }
-  if (is_ComponentElement(element)) {
+  if (is_FunctionElement(element)) {
     renderComponentElement(element);
   } else {
     renderDOMElement(element);

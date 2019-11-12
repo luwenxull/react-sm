@@ -1,5 +1,5 @@
-import { ComponentElement, DOMElement, Events } from './creatElement';
-import { is_ComponentElement } from './util';
+import { FunctionElement, DOMElement, Events } from './creatElement';
+import { is_FunctionElement } from './util';
 
 const availableEvents: Set<Events> = new Set([
   'onClick',
@@ -10,7 +10,7 @@ const availableEvents: Set<Events> = new Set([
 ]);
 
 function bubble(
-  element: ComponentElement | DOMElement,
+  element: FunctionElement | DOMElement,
   type: string,
   e: Event
 ): void {
@@ -27,10 +27,10 @@ function getEventType(type: string): string {
 }
 
 export default function bindEvents(
-  element: ComponentElement | DOMElement,
+  element: FunctionElement | DOMElement,
   props: { [props: string]: unknown }
 ): void {
-  if (!is_ComponentElement(element)) {
+  if (!is_FunctionElement(element)) {
     Object.keys(props).forEach(key => {
       if (availableEvents.has(key as any)) {
         (<HTMLElement>element.$dom).addEventListener(getEventType(key), e => {

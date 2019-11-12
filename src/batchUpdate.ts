@@ -1,11 +1,11 @@
-import { ComponentElement } from './creatElement';
+import { FunctionElement } from './creatElement';
 import render from './render';
 import requestDiffHandler from './diff';
 
-type BatchUpdateCallback = (entries: ComponentElement[]) => void;
+type BatchUpdateCallback = (entries: FunctionElement[]) => void;
 
 let _updateId: number | undefined;
-const _pendings: ComponentElement[] = [];
+const _pendings: FunctionElement[] = [];
 const _batchUpdatedListeners: Array<BatchUpdateCallback> = [];
 const _isRequestAnimationFrameAvailable =
   typeof requestAnimationFrame === 'function';
@@ -55,7 +55,7 @@ function _batchUpdate() {
     }
     batchUpdateEntries.forEach(element => {
       const copy = Object.assign({}, element);
-      requestDiffHandler(render(element) as ComponentElement, copy)();
+      requestDiffHandler(render(element) as FunctionElement, copy)();
     });
     _batchUpdatedListeners.forEach(fn => {
       fn(batchUpdateEntries);
@@ -65,7 +65,7 @@ function _batchUpdate() {
   }
 }
 
-export default function batchUpdate(element: ComponentElement) {
+export default function batchUpdate(element: FunctionElement) {
   _pendings.push(element);
   if (typeof _updateId === 'number') {
     _tiker.cancel(_updateId);

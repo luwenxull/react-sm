@@ -1,6 +1,5 @@
 import { Diff, DiffType } from './diff';
-import { findClosetParentDom } from './util';
-import { Element, ComponentElement } from './creatElement';
+import { Element, FunctionElement } from './creatElement';
 import { _mount } from './mount';
 export default function applyDiff(diffs: Diff[]) {
   diffs.forEach(diff => {

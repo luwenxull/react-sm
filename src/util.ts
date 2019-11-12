@@ -1,27 +1,23 @@
 import {
-  ComponentElement,
+  FunctionElement,
   Element,
-  Child,
-  Primitive,
   TextElement,
   TextComponent,
-  _ComponentElement,
+  _FunctionElement,
 } from './creatElement';
-
-declare const process: any;
 
 export function isElement(element: any): element is Element {
   return typeof element === 'object' && element !== null && element._isElement;
 }
 
-export function is_ComponentElement(
+export function is_FunctionElement(
   element: any
-): element is ComponentElement | TextElement {
+): element is FunctionElement | TextElement {
   return isElement(element) && typeof element.type === 'function';
 }
 
 export function isTextElement(element: any): element is TextElement {
-  return is_ComponentElement(element) && element.type === TextComponent;
+  return is_FunctionElement(element) && element.type === TextComponent;
 }
 
 export function isEmpty(val: any) {
@@ -41,7 +37,7 @@ export function findClosetParentDom(element: Element): HTMLElement {
 }
 
 export function findDeeperDom(element: Element): Array<HTMLElement | Text> {
-  if (is_ComponentElement(element)) {
+  if (is_FunctionElement(element)) {
     if (element.type === TextComponent) {
       return [element.$dom as Text];
     } else if (isElement(element.renderElement)) {
@@ -61,3 +57,5 @@ export function findDeeperDom(element: Element): Array<HTMLElement | Text> {
     }
   }
 }
+
+// expor

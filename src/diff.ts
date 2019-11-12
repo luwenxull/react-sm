@@ -1,7 +1,6 @@
 import {
   Element,
-  Child,
-  ComponentElement,
+  FunctionElement,
   DOMElement,
   ElementType,
   TextComponent,
@@ -10,7 +9,7 @@ import {
 } from './creatElement';
 import {
   isElement,
-  is_ComponentElement,
+  is_FunctionElement,
   isEmpty,
   findClosetParentDom,
 } from './util';
@@ -124,11 +123,11 @@ function diff(
           });
         } else {
           // type相等
-          if (is_ComponentElement(newVal)) {
+          if (is_FunctionElement(newVal)) {
             // so as oldElement
             const pair: Pair = {
               newVal: newVal.renderElement,
-              oldVal: (<ComponentElement>oldVal).renderElement,
+              oldVal: (<FunctionElement>oldVal).renderElement,
               parentDOM:
                 newVal.type === TextComponent
                   ? ((<TextElement>newVal).$dom as Text)
@@ -179,8 +178,8 @@ function diff(
 }
 
 export default function requestDiffHandler(
-  newVal: ComponentElement,
-  oldVal: ComponentElement,
+  newVal: FunctionElement,
+  oldVal: FunctionElement,
   inspector?: (diffs: Diff[], pairs: Pair[]) => void
 ): () => void {
   const entryPair = [

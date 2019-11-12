@@ -4,40 +4,39 @@ export type Props = {
   [props: string]: any;
 };
 
-export type Children = Child | Child[];
+// export type Children = Child | Child[];
 
 export type Component<T extends Props = {}> = (
   props: T & {
-    children?: Children;
+    children?: unknown;
   }
-) => Child;
+) => unknown;
 
 export type ElementType = Component<any> | string;
 
 export interface BaseElement<T extends ElementType> {
   type: T;
-  parent?: ComponentElement | DOMElement;
+  parent?: FunctionElement | DOMElement;
   depth?: number;
   key?: string;
-  // $dom?: HTMLElement | Text;
   _isElement: true;
 }
 
-export interface _ComponentElement<T extends Component<any> = Component<any>>
+export interface _FunctionElement<T extends Component<any> = Component<any>>
   extends BaseElement<T> {
   _typeName: string;
   states: any[];
   props?: T extends Component<infer U> ? U : never;
   renderElement?: Element;
-  children?: Children;
+  children?: any;
 }
 
-export interface ComponentElement<T extends Component<any> = Component<any>>
-  extends _ComponentElement<T> {
+export interface FunctionElement<T extends Component<any> = Component<any>>
+  extends _FunctionElement<T> {
   $dom?: HTMLElement;
 }
 
-export interface TextElement extends _ComponentElement<typeof TextComponent> {
+export interface TextElement extends _FunctionElement<typeof TextComponent> {
   $dom?: Text;
   renderElement?: any;
 }
@@ -50,13 +49,13 @@ export interface DOMElement<T extends string = any> extends BaseElement<T> {
 }
 
 export const TextComponent: Component = function(props) {
-  return props.children as Child;
+  return props.children;
 };
 
-export type Element = ComponentElement | TextElement | DOMElement;
+export type Element = FunctionElement | TextElement | DOMElement;
 export type Primitive = string | number | null | undefined;
 
-export type Child = ComponentElement | DOMElement | Primitive;
+// export type Child = Exclude<Element | Primitive, TextElement>
 
 export type Events =
   | 'onClick'
@@ -88,24 +87,24 @@ export default function createElement<T extends Component<any>>(
   props?: T extends Component<infer U>
     ? U & { key?: string } & EventListener
     : never,
-  children?: Children
-): ComponentElement<T>;
+  children?: any
+): FunctionElement<T>;
 export default function createElement<T extends string>(
   type: T,
   props?: Props & EventListener,
-  children?: Children
+  children?: any
 ): DOMElement<T>;
 export default function createElement<T extends ElementType>(
   type: T,
   props?: any,
-  children?: Child | Child[]
+  children?: any
 ): Element {
   let element: any;
   if (typeof type === 'string') {
     element = {
       type,
       props,
-      children: ([] as Child[])
+      children: []
         .concat(children)
         .filter(child => !isEmpty(child))
         .map(child => {
@@ -122,7 +121,7 @@ export default function createElement<T extends ElementType>(
       children,
       _isElement: true,
       _typeName: (<Function>type).name,
-    } as ComponentElement;
+    } as FunctionElement;
   }
   if (
     typeof props === 'object' &&

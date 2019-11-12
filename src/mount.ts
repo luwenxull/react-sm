@@ -1,17 +1,11 @@
-import {
-  Element,
-  Child,
-  ComponentElement,
-  TextComponent,
-  Primitive,
-} from './creatElement';
-import { isElement, is_ComponentElement, isTextElement } from './util';
+import { Element } from './creatElement';
+import { isElement, is_FunctionElement, isTextElement } from './util';
 import render from './render';
 import bindEvents from './bindEvents';
 
 type DOM = HTMLElement | DocumentFragment;
 
-function append(element: any, parent: DOM) {
+function appendTextNode(element: any, parent: DOM) {
   if (isElement(element)) {
     if (isTextElement(element)) {
       const { renderElement } = element;
@@ -24,9 +18,9 @@ function append(element: any, parent: DOM) {
 }
 
 export function _mount(element: Element, parent: DOM) {
-  if (is_ComponentElement(element)) {
+  if (is_FunctionElement(element)) {
     const { renderElement } = element;
-    append(renderElement, parent);
+    appendTextNode(renderElement, parent);
   } else {
     let dom: DOM;
     if (element.type === 'fragment') {
@@ -37,7 +31,7 @@ export function _mount(element: Element, parent: DOM) {
       element.props && bindEvents(element, element.props);
     }
     element.children.forEach(child => {
-      append(child, dom);
+      appendTextNode(child, dom);
     });
     // if (element.type === 'fragment') {
     //   element.$dom =
@@ -48,7 +42,7 @@ export function _mount(element: Element, parent: DOM) {
 
 export default function mount(element: Element, parent: HTMLElement) {
   render(element);
-  if (is_ComponentElement(element)) {
+  if (is_FunctionElement(element)) {
     element.$dom = parent;
   }
   _mount(element, parent);
