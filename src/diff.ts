@@ -6,6 +6,7 @@ import {
   TextComponent,
   Primitive,
   TextElement,
+  Props,
 } from './creatElement';
 import {
   isElement,
@@ -13,7 +14,9 @@ import {
   isEmpty,
   findClosetParentDom,
 } from './util';
-import applyDiff from './applyDiff';
+import { applyDiff, applyPropDiff } from './applyDiff';
+import { availableEvents } from './handleProps';
+import { Events } from './bindEvents';
 
 export enum DiffType {
   CREATE,
@@ -26,15 +29,60 @@ export interface Diff {
   pair: Pair;
 }
 
+export interface PropDiff {
+  type: DiffType;
+  key: string;
+  value?: unknown;
+  element: DOMElement;
+}
+
 interface Pair {
   newVal: Element | Primitive;
   oldVal: Element | Primitive;
   parentDOM: HTMLElement | Text;
 }
 
-function diffDomProps(newElement: DOMElement, oldElement: DOMElement) {
-  console.log(newElement.props === oldElement.props);
-  console.log(oldElement.props);
+/**
+ * 对prop进行diff
+ *
+ * @param {DOMElement} newElement
+ * @param {DOMElement} oldElement
+ * @returns {PropDiff[]}
+ */
+function diffDomProps(
+  newElement: DOMElement,
+  oldElement: DOMElement
+): PropDiff[] {
+  debugger;
+  const newProps = newElement.props || {};
+  const oldProps = oldElement.props || {};
+  const diffs: PropDiff[] = [];
+  Object.keys(oldProps).forEach(key => {
+    if (!newProps.hasOwnProperty(key)) {
+      newProps[key] = undefined;
+    }
+  });
+  Object.keys(newProps).forEach(key => {
+    if (newProps[key] !== oldProps[key]) {
+      if (isEmpty(newProps[key])) {
+        if (!isEmpty(oldProps[key])) {
+          diffs.push({
+            type: DiffType.DELETE,
+            key,
+            element: newElement,
+          });
+        }
+      } else {
+        diffs.push({
+          type: DiffType.REPLACE,
+          key,
+          value: newProps[key],
+          element: newElement,
+        });
+      }
+    }
+  });
+  return diffs;
 }
 
 export function resolveChildrenForDOMElement(
@@ -52,7 +100,7 @@ export function resolveChildrenForDOMElement(
   } = newElement;
   const {
     children: oldChildren,
-    childrenMapByKey: oldChildrenMapByKey,
+    _childrenMapByKey: oldChildrenMapByKey,
   } = oldElement;
   const childrenNumKey: Map<ElementType, number> = new Map();
   const childrendNeedKeep: Set<Element> = new Set();
@@ -107,10 +155,12 @@ function diff(
 ): {
   diffs: Diff[];
   pendingPairs: Pair[];
+  propDiffs: PropDiff[];
 } {
   const { newVal, oldVal, parentDOM } = pair;
   const diffs: Diff[] = [];
   const pendingPairs: Pair[] = [];
+  const propDiffs: PropDiff[] = [];
   if (isEmpty(newVal)) {
     if (!isEmpty(oldVal)) {
       diffs.push({
@@ -140,12 +190,13 @@ function diff(
             };
             pendingPairs.push(pair);
           } else {
-            diffDomProps(newVal, <DOMElement>oldVal);
+            const _propDiffs = diffDomProps(newVal, <DOMElement>oldVal);
             const results = resolveChildrenForDOMElement(newVal, <DOMElement>(
               oldVal
             ));
             diffs.push(...results.diffs);
             pendingPairs.push(...results.pendingPairs);
+            propDiffs.push(..._propDiffs);
             // todo sort
           }
         }
@@ -179,22 +230,28 @@ function diff(
   return {
     diffs,
     pendingPairs,
+    propDiffs,
   };
 }
 
 export default function requestDiffHandler(
   newVal: FunctionElement,
   oldVal: FunctionElement,
-  inspector?: (diffs: Diff[], pairs: Pair[]) => void
+  inspector?: (
+    pendingPairs: Pair[],
+    diffs: Diff[],
+    propDiffs: PropDiff[]
+  ) => void
 ): () => void {
   const entryPair = [
     { newVal, oldVal, parentDOM: findClosetParentDom(oldVal) },
   ];
   function handleDiffPair(pairs: Pair[]) {
     pairs.forEach(pair => {
-      let { diffs, pendingPairs } = diff(pair);
-      inspector && inspector(diffs, pendingPairs);
+      let { diffs, propDiffs, pendingPairs } = diff(pair);
+      inspector && inspector(pendingPairs, diffs, propDiffs);
       diffs.length && applyDiff(diffs);
+      propDiffs.length && applyPropDiff(propDiffs);
       pendingPairs.length && handleDiffPair(pendingPairs);
     });
   }

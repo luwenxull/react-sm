@@ -18,7 +18,10 @@ function reuse(newElement: Element, oldElement: Element) {
     newElement.states = (<_FunctionElement>oldElement).states;
     newElement.renderElement = (<_FunctionElement>oldElement).renderElement;
   } else {
-    newElement.childrenMapByKey = (<DOMElement>oldElement).childrenMapByKey;
+    newElement._childrenMapByKey = (<DOMElement>oldElement)._childrenMapByKey;
+    newElement._bindedEventsManager = (<DOMElement>(
+      oldElement
+    ))._bindedEventsManager;
   }
   if (oldElement.$dom) {
     newElement.$dom = oldElement.$dom;
@@ -59,7 +62,7 @@ function renderComponentElement(element: _FunctionElement): _FunctionElement {
 }
 
 function renderDOMElement(element: DOMElement): DOMElement {
-  const { childrenMapByKey, type } = element;
+  const { _childrenMapByKey: childrenMapByKey, type } = element;
   if (!isProduction) {
     logger.funtionComponentCallStack.push(type + '-' + element.depth);
   }
@@ -87,7 +90,7 @@ function renderDOMElement(element: DOMElement): DOMElement {
     render(child);
   });
 
-  element.childrenMapByKey = newChildrenMapByKey;
+  element._childrenMapByKey = newChildrenMapByKey;
   return element;
 }
 

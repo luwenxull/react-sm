@@ -45,8 +45,11 @@ export interface TextElement extends _FunctionElement<typeof TextComponent> {
 export interface DOMElement<T extends string = any> extends BaseElement<T> {
   props?: Props;
   children: Element[];
-  childrenMapByKey: Map<ElementType, Map<string | number, Element>>;
   $dom?: HTMLElement;
+  _childrenMapByKey: Map<ElementType, Map<string | number, Element>>;
+  _bindedEventsManager: {
+    [key in Events]?: () => void;
+  };
 }
 
 export const TextComponent: Component = function(props) {
@@ -56,8 +59,9 @@ export const TextComponent: Component = function(props) {
 export type Element = FunctionElement | TextElement | DOMElement;
 export type Primitive = string | number | null | undefined;
 
-// export type Child = Exclude<Element | Primitive, TextElement>
-
+/**
+ * 事件监听
+ */
 export type EventListener = {
   [key in Events]?: (e: Event, stop: () => void) => void;
 };
@@ -106,7 +110,8 @@ export default function createElement<T extends ElementType>(
           return isElement(child) ? child : createTextElement(child);
         }),
       _isElement: true,
-      childrenMapByKey: new Map(),
+      _childrenMapByKey: new Map(),
+      _bindedEventsManager: {},
     } as DOMElement<string>;
   } else {
     element = {

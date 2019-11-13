@@ -62,9 +62,9 @@ test('render: hierachy', () => {
   expect(a1.key).toBeUndefined();
   expect(a2.key).toBe('a2');
   expect(a3.key).toBeUndefined();
-  expect((div.childrenMapByKey.get(A) as Map<any, any>).get(0)).toBe(a1);
-  expect((div.childrenMapByKey.get(A) as Map<any, any>).get('a2')).toBe(a2);
-  expect((div.childrenMapByKey.get(A) as Map<any, any>).get(1)).toBe(a3);
+  expect((div._childrenMapByKey.get(A) as Map<any, any>).get(0)).toBe(a1);
+  expect((div._childrenMapByKey.get(A) as Map<any, any>).get('a2')).toBe(a2);
+  expect((div._childrenMapByKey.get(A) as Map<any, any>).get(1)).toBe(a3);
   // const t1 = a1.renderElement as FunctionElement
   const t2 = a2.renderElement as FunctionElement;
   expect(t2.type).toBe(TextComponent);

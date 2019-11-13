@@ -20,7 +20,7 @@ test('diff: update text', () => {
   requestsDiffHandler(a2, a1, inspector)();
   expect(inspector.mock.calls.length).toBe(3);
   const call2 = inspector.mock.calls[2];
-  const diffs: Diff[] = call2[0];
+  const diffs: Diff[] = call2[1];
   expect(diffs.length).toBe(1);
   const diff = diffs[0];
   expect(diff.type).toBe(DiffType.UPDATE_TEXT);
@@ -39,8 +39,7 @@ test('diff: delete and create', () => {
     const inspector = jest.fn();
     requestsDiffHandler(a2, a1, inspector)();
     expect(inspector.mock.calls.length).toBe(2);
-    const call1 = inspector.mock.calls[1];
-    const diffs: Diff[] = call1[0];
+    const [, diffs] = inspector.mock.calls[1];
     expect(diffs.length).toBe(1);
     const diff = diffs[0];
     expect(diff.type).toBe(DiffType.DELETE);
@@ -49,8 +48,7 @@ test('diff: delete and create', () => {
     const inspector = jest.fn();
     requestsDiffHandler(a1, a2, inspector)();
     expect(inspector.mock.calls.length).toBe(2);
-    const call1 = inspector.mock.calls[1];
-    const diffs: Diff[] = call1[0];
+    const [, diffs] = inspector.mock.calls[1];
     expect(diffs.length).toBe(1);
     const diff = diffs[0];
     expect(diff.type).toBe(DiffType.CREATE);
@@ -59,6 +57,34 @@ test('diff: delete and create', () => {
   test_create();
 });
 
+test('diff: replace', () => {});
+
+test('diff: props delete', () => {
+  let A: Component<{ index: number }> = function(props) {
+    return props.index === 1
+      ? createElement('div', {
+          name: 'a1',
+          loc: '2',
+        })
+      : createElement('div', {
+          name: 'a2',
+          age: 22,
+        });
+  };
+  const a1 = createElement(A, { index: 1 });
+  const a2 = createElement(A, { index: 2 });
+  render(a1);
+  render(a2);
+  const inspector = jest.fn();
+  requestsDiffHandler(a2, a1, inspector)();
+  expect(inspector.mock.calls.length).toBe(2);
+  const [, , propDiffs] = inspector.mock.calls[1];
+  expect(propDiffs.length).toBe(3);
+  const [d1, d2, d3] = propDiffs;
+  console.log(d1.key);
+  expect(d1.type).toBe(DiffType.REPLACE);
+  expect(d1.key).toBe('name');
+});
 // test('diff: reconcile', () => {
 //   const a = createElement('div', undefined, ['a']);
 //   const a1 = createElement('div', undefined, ['a', 'a1']);

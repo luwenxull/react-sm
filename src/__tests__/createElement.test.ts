@@ -15,6 +15,7 @@ test('create dom element', () => {
   expect(e.key).toBeUndefined();
   const e2 = createElement('div', { key: '1' });
   expect(e2.key).toBe('1');
+  expect(e2.children.length).toBe(0);
 });
 
 test('create function element', () => {

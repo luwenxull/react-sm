@@ -24,6 +24,13 @@ export function isEmpty(val: any) {
   return val === undefined || val === null;
 }
 
+/**
+ * 寻找最接近的上层dom
+ *
+ * @export
+ * @param {Element} element
+ * @returns {HTMLElement}
+ */
 export function findClosetParentDom(element: Element): HTMLElement {
   if (element.parent) {
     if (element.parent.$dom) {
@@ -57,5 +64,3 @@ export function findDeeperDom(element: Element): Array<HTMLElement | Text> {
     }
   }
 }
-
-// expor

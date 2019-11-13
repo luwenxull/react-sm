@@ -1,7 +1,7 @@
 import { DOMElement, Props } from './creatElement';
 import bindEvents, { Events } from './bindEvents';
 
-const availableEvents: Set<Events> = new Set([
+export const availableEvents: Set<Events> = new Set([
   'onClick',
   'onMousemove',
   'onMouseenter',
